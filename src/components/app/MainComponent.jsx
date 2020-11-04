@@ -54,43 +54,24 @@ class MainComponent extends Component{
             .then(
                 (response) => {
 
+
+                    let results = response.data.features
+
+                    console.log(response.data.features)
+
+                    let latUpperBound = 32.895228
+                    let latLowerBound = 32.695733
+
+                    let longLowerBound = -117.305832
+                    let longUpperBound = -117.110310
+
                     let numWeeksAgo = 2;
                     let d = new Date();
                     d.setDate(d.getDate() + numWeeksAgo * 7);
                     let dateTwoWeeksAgo = d.getFullYear() + "/" + d.getMonth() + "/" + d.getDate() + " 08:00:00+00";
 
 
-                    let resultsByZip = response.data.features;
-                    let allResults = [];
-
-                    let caseT
-
-                    let obj = new Object();
-
-                    Object.values(resultsByZip).map(result => {
-                        let data = result.properties
-                        let zipCode = data.ziptext
-
-
-
-                        if(dateTwoWeeksAgo < data.updatedate && this.state.zipCodesAllowed.includes(parseInt(zipCode))){
-                            allResults.push(data)
-
-                            if(zipCode in obj){
-                                obj[zipCode].push(data)
-                            }
-                            else{
-                                obj[zipCode] = [data]
-                            }
-                        }
-                    })
-
-                    this.setState({
-                        resultsByZip: obj,
-                        allResults: allResults,
-                        loading: false
-                    })
-                    console.log(allResults)
+                    //console.log(allResults)
 
 
 
