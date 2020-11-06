@@ -1,8 +1,18 @@
 import React, {Component} from "react";
-import 'bootstrap/dist/css/bootstrap.min.css';
+
 import ServiceApi from "../../services/ServiceApi";
 
 import {Table} from 'react-bootstrap';
+
+import CanvasJSReact from "./canvasjs.react";
+// import './canvasjs.min.js'
+// import './canvasjs.react.js'
+let CanvasJSChart = CanvasJSReact.CanvasJSChart;
+
+
+// import CanvasJSReact from 'canvasjs.react';
+// var CanvasJS = CanvasJSReact.CanvasJS;
+// var CanvasJSChart = CanvasJSReact.CanvasJSChart;
 
 
 class MainComponent extends Component{
@@ -90,15 +100,11 @@ class MainComponent extends Component{
         })
 
 
+
+
         ServiceApi.getAllResults()
             .then(
                 (response) => {
-
-                    let d = new Date();
-
-                    let dateTwoWeeksAgoString = d.getFullYear() + "/" + d.getMonth() + "/" + d.getDate()
-                    let dateTwoWeeksAgoFormatted = d.getFullYear() + "/" + d.getMonth() + "/" + d.getDate() + " 08:00:00+00";
-
 
                     let resultsByZip = response.data.features;
                     let allResultsOrig = response.data.features;
@@ -114,9 +120,6 @@ class MainComponent extends Component{
                     let objCountByDate = new Map();
                     let finalCountByDate = new Map()
 
-                    let objPerCapitaByDate = new Map();
-                    let finalPerCapitaByDate = new Map();
-
 
                     for(let result of allResults){
 
@@ -127,8 +130,6 @@ class MainComponent extends Component{
 
 
                         let caseCount = data2.case_count
-
-                        let ratePer100k = data2.rate_100k
 
 
                         let updateDate = data2.updatedate
@@ -141,20 +142,23 @@ class MainComponent extends Component{
 
                         if(this.state.zipCodesAllowed.includes(parseInt(zipCode))){
 
-                            if(caseCount == null || caseCount == 0){
+                            let currentDate = new Date("May 25, 2020")
+
+                            let dateFormat = require('dateformat');
+                            let currentDateString= dateFormat(currentDate, "yyyy/mm/dd");
+
+                            // Only show results after cutoff date
+                            if(caseCount == null || caseCount == 0 || currentDateString >= dateString){
                                 continue
                             }
 
-                                if(objCountByDate.has(dateString)){
-                                    objCountByDate.set(dateString, objCountByDate.get(dateString) + caseCount)
-                                    // if(ratePer100k != null)
-                                    //     objPerCapitaByDate.set(dateString, objPerCapitaByDate.get(dateString) + ratePer100k)
-                                }
-                                else{
-                                    objCountByDate.set(dateString, caseCount)
-                                    // if(ratePer100k != null)
-                                    //     objPerCapitaByDate.set(dateString, ratePer100k)
-                                }
+                            if(objCountByDate.has(dateString)){
+                                objCountByDate.set(dateString, objCountByDate.get(dateString) + caseCount)
+
+                            }
+                            else{
+                                objCountByDate.set(dateString, caseCount)
+                            }
 
 
 
@@ -164,8 +168,10 @@ class MainComponent extends Component{
 
                         }
                     }
+                    objCountByDate = new Map([...objCountByDate.entries()].sort())
+                    console.log(objCountByDate)
 
-                    console.log(allResults)
+                    //console.log(allResults)
 
 
                     // TRAVERSE objCountByDate and compare totals to one day prior
@@ -178,20 +184,8 @@ class MainComponent extends Component{
                     }
 
 
-                    // let prevDayRate = 0
-                    // for(let [dateString, result] of objPerCapitaByDate){
-                    //
-                    //     finalPerCapitaByDate.set(dateString, result - prevDayRate)
-                    //
-                    //     prevDayRate = result
-                    //
-                    // }
-
-                    //console.log()
-
 
                     let finalCountByDateAverage = new Map()
-                    let finalPerCapitaByDateAverage = new Map()
 
                     let finalCountByWeekAverage = new Map()
 
@@ -213,20 +207,6 @@ class MainComponent extends Component{
 
 
 
-                    // queue = []
-                    // for(let [dateString, result] of finalPerCapitaByDate) {
-                    //     queue.push(result)
-                    //     if(queue.length > 5)
-                    //         queue.shift()
-                    //
-                    //     let average = 0
-                    //     for(let value of queue){
-                    //         average += value
-                    //     }
-                    //     average /= queue.length
-                    //
-                    //     finalPerCapitaByDateAverage.set(dateString, average)
-                    // }
 
                     // Calculate weekly totals
                     let count = 0
@@ -253,17 +233,12 @@ class MainComponent extends Component{
                     this.setState({
                         finalCountByDate: finalCountByDate,
                         finalCountByDateAverage: finalCountByDateAverage,
-                        // finalPerCapitaByDate: finalPerCapitaByDate,
-                        // finalPerCapitaByDateAverage: finalPerCapitaByDateAverage,
                         finalCountByWeekAverage: finalCountByWeekAverage,
                         loading: false
                     })
 
 
                     //console.log(finalCountByDate)
-
-console.log(finalCountByDate)
-
 
                 }
             )
@@ -272,6 +247,16 @@ console.log(finalCountByDate)
 
 
     render(){
+
+
+
+        // var CanvasJS = CanvasJSReact.CanvasJS;
+        // var CanvasJSChart = CanvasJSReact.CanvasJSChart;
+
+
+
+        let dataPointsArray = []
+
 
         let populationTotal = 0
 
@@ -310,8 +295,46 @@ console.log(finalCountByDate)
             keys.reduce((r, a) => r[a] = r[a] || {}, objectWeekly)[last] = value;
         });
 
+
+
+
+        reversedMapAverage.forEach((value, dateString) => {
+            let caseCount = objectAverage[dateString]
+
+            if(caseCount > 0)
+                dataPointsArray.push({x: new Date(dateString), y: caseCount})
+
+        })
+
+
+        console.log(dataPointsArray)
+
+
+        dataPointsArray.splice(-7,7)
+
+
+        const options = {
+            animationEnabled: true,
+            title:{
+                text: "Cases per day (5 day average)"
+            },
+            axisX: {
+                //valueFormatString: "YYYY/MM/DD"
+            },
+            axisY: {
+                title: "Cases"
+            },
+            data: [{
+                yValueFormatString: "#",
+                xValueFormatString: "MMM D, YYYY (DDDD)",
+                type: "spline",
+                dataPoints: dataPointsArray
+            }]
+        }
+
         return(
             <>
+
                 <div className="container">
 
 
@@ -319,7 +342,16 @@ console.log(finalCountByDate)
                     <h3>Cases per week</h3>
 
 
+
                     <div className="resultsByZip-wrapper">
+                        <div className="contributionChart">
+                            <CanvasJSChart
+                                options={options}
+                                // onRef = {ref => this.chart = ref}
+                            />
+                        </div>
+
+
                         <Table  striped bordered hover>
                             <thead>
 
@@ -343,8 +375,8 @@ console.log(finalCountByDate)
                                     //let caseRate = Math.round(this.state.finalPerCapitaByDateAverage.get(dateString))
 
                                     return(
-                                        <>
 
+                                        <>
                                             <tr>
                                                 <td>{dateString}</td>
                                                 <td>{caseCount}</td>
@@ -361,7 +393,13 @@ console.log(finalCountByDate)
 
                         </Table>
 
+
+
+
                     </div>
+
+
+
 
 
 
