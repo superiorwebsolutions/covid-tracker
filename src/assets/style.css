@@ -1,0 +1,14 @@
+
+
+.boundary-img{
+    width:98%;
+    max-width:900px;
+    /*float:right;*/
+}
+
+.show-pb{
+    margin: auto;
+    display: block;
+    margin-top: 20px;
+    font-size:18px;
+}

@@ -4,7 +4,8 @@ import axios from 'axios';
 class ServiceApi{
 
     getAllResults(){
-        return axios.get(API_URL);
+
+        return axios.get("./dataset.json");
     }
 
 }
