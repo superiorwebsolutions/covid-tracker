@@ -40,6 +40,17 @@ class ResultsComponent extends Component {
                     let objCountByDate = new Map();
                     let finalCountByDate = new Map()
 
+                    let zipCodesAllowed;
+
+                    if (this.props.stateObj.filter == true) {
+                        zipCodesAllowed = [92109]
+                        this.props.updateState({associatedPopulations: [49744]})
+
+                    }
+                    else
+                        zipCodesAllowed = this.props.stateObj.zipCodesAllowed
+
+
 
                     for (let result of allResults) {
 
@@ -57,18 +68,13 @@ class ResultsComponent extends Component {
 
                         //let dateString = date.getFullYear() + "/" + date.getMonth() + "/" + date.getDate();
 
-                        let zipCodesAllowed;
 
-                        if (this.props.stateObj.filter == true) {
-                            zipCodesAllowed = [92109]
-                        }
-                        else
-                            zipCodesAllowed = this.props.stateObj.zipCodesAllowed
 
                         if (zipCodesAllowed.includes(parseInt(zipCode))) {
                             let currentDate
                             if (this.props.stateObj.loadMore == true) {
                                 currentDate = new Date("May 25, 2020")
+
                             }
                             else{
                                 currentDate = new Date("August 01, 2020")
@@ -324,52 +330,52 @@ class ResultsComponent extends Component {
         let stripLines = [{
             startValue: new Date("2020/06/12"),
             endValue: new Date("2020/07/01"),
-            label: "Bars",
-            labelFontSize: 30,
-            labelAlign: "center",
-            opacity: .4,
-            color:"gray",
-            labelFontColor: "black",
+            label: "Bars open",
+            labelFontSize: 24,
+            labelAlign: "far",
+            opacity: .8,
+            color:"transparent",
+            labelFontColor: "#f44336",
             showOnTop: true,
-            labelBackgroundColor: "transparent",
-            labelMaxWidth: 1000,
+            labelBackgroundColor: "white",
+            labelMaxWidth: 500,
         },{
             startValue: new Date("2020/08/20"),
             endValue: new Date("2020/09/08"),
-            label: "SDSU",
-            labelFontSize: 30,
-            labelAlign: "center",
-            opacity: .4,
-            color:"gray",
-            labelFontColor: "black",
+            label: "SDSU begins",
+            labelFontSize: 24,
+            labelAlign: "far",
+            opacity: .6,
+            color:"transparent",
+            labelFontColor: "#f44336",
             showOnTop: true,
-            labelBackgroundColor: "transparent",
+            labelBackgroundColor: "white",
             labelMaxWidth: 1000,
 
         },{
-            startValue: new Date("2020/07/03"),
-            endValue: new Date("2020/07/05"),
-            // label: "4th of July",
-            labelFontSize: 22,
-            labelAlign: "center",
-            opacity: .4,
-            color:"gray",
-            labelFontColor: "black",
+            startValue: new Date("2020/10/30"),
+            endValue: new Date("2020/11/6"),
+            label: "Halloween",
+            labelFontSize: 24,
+            labelAlign: "far",
+            opacity: .6,
+             color:"transparent",
+            labelFontColor: "#f44336",
             showOnTop: true,
-            labelBackgroundColor: "transparent",
+            labelBackgroundColor: "white",
             labelMaxWidth: 1000,
 
         },{
             startValue: new Date("2020/11/25"),
-            endValue: new Date("2020/11/27"),
+            endValue: new Date("2020/11/30"),
             // label: "Thanksgiving",
-            labelFontSize: 22,
+            labelFontSize: 24,
             labelAlign: "center",
             opacity: .4,
-            color:"gray",
-            labelFontColor: "black",
+            color:"transparent",
+            labelFontColor: "#f44336",
             showOnTop: true,
-            labelBackgroundColor: "transparent",
+            labelBackgroundColor: "white",
             labelMaxWidth: 1000,
 
         }
@@ -393,8 +399,8 @@ class ResultsComponent extends Component {
             },
             axisX: {
                 valueFormatString: "M/D",
-                interval: 1,
-                intervalType: "week",
+                // interval: 1,
+                // intervalType: "week",
                 stripLines:stripLines,
             },
             data: [{
@@ -420,8 +426,8 @@ class ResultsComponent extends Component {
                 labelFontSize: 18
             },
             axisX: {
-                interval: 7,
-                intervalType: "day",
+                // interval: 7,
+                // intervalType: "day",
                 valueFormatString: "M/D",
                 stripLines:stripLines,
             },

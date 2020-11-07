@@ -37,6 +37,7 @@ class MainApp extends Component{
                 92123,
                 92124,
                 92120,
+                92109,
                 92110,
                 92108,
                 92107,
@@ -64,6 +65,7 @@ class MainApp extends Component{
                 26823,
                 26823,
                 30443,
+                49744,
                 26317,
                 25341,
                 18858,
@@ -129,7 +131,7 @@ class MainApp extends Component{
 
                     <ResultsComponent stateObj={this.state} updateState={this.updateState}></ResultsComponent>
 
-                    <h5>All results are within this region</h5>
+                    <h5>All covid results within this region</h5>
                     <br />
                     <img className="boundary-img" src={boundary} />
                     <br /><br /><br /><br /><br /><br /><br /><br />
