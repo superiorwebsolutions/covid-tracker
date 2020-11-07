@@ -18,13 +18,13 @@ class ResultsComponent extends Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            allResults: new Map(),
+            objCountByDate: new Map()
+        }
         this.refreshResults = this.refreshResults.bind(this)
-    }
 
 
-
-
-    refreshResults() {
 
         ServiceApi.getAllResults()
             .then(
@@ -38,58 +38,45 @@ class ResultsComponent extends Component {
 
 
                     let objCountByDate = new Map();
-                    let finalCountByDate = new Map()
+
 
                     let zipCodesAllowed;
 
-                    if (this.props.stateObj.filter == true) {
-                        zipCodesAllowed = [92109]
-                        this.props.updateState({associatedPopulations: [49744]})
-
-                    }
-                    else
+                    // if (this.props.stateObj.filter == true) {
+                    //     zipCodesAllowed = [92109]
+                    //     this.props.updateState({associatedPopulations: [49744]})
+                    //
+                    // }
+                    // else
                         zipCodesAllowed = this.props.stateObj.zipCodesAllowed
 
 
-
+                    let partialResults = []
                     for (let result of allResults) {
 
-                        let data2 = result.properties
+                        let data = result.properties
 
-                        let zipCode = data2.ziptext
+                        let zipCode = data.ziptext
 
+                        let caseCount = data.case_count
 
-                        let caseCount = data2.case_count
-
-
-                        let updateDate = data2.updatedate
+                        let updateDate = data.updatedate
                         let dateString = updateDate.slice(0, updateDate.indexOf(' '))
 
-
-                        //let dateString = date.getFullYear() + "/" + date.getMonth() + "/" + date.getDate();
-
-
-
                         if (zipCodesAllowed.includes(parseInt(zipCode))) {
-                            let currentDate
-                            if (this.props.stateObj.loadMore == true) {
-                                currentDate = new Date("May 25, 2020")
-
-                            }
-                            else{
-                                currentDate = new Date("August 01, 2020")
-                            }
-
-
+                            let currentDate = new Date("August 01, 2020")
 
                             let dateFormat = require('dateformat');
                             let currentDateString = dateFormat(currentDate, "yyyy/mm/dd");
 
                             // Only show results after cutoff date
-                            if (caseCount == null || caseCount == 0 || currentDateString >= dateString) {
+                            if (caseCount == null || caseCount == 0) {
                                 continue
                             }
 
+                            partialResults.push(data)
+
+                            /*
                             if (objCountByDate.has(dateString)) {
                                 objCountByDate.set(dateString, objCountByDate.get(dateString) + caseCount)
 
@@ -97,100 +84,91 @@ class ResultsComponent extends Component {
                                 objCountByDate.set(dateString, caseCount)
                             }
 
+                             */
+
 
                         }
                     }
-                    objCountByDate = new Map([...objCountByDate.entries()].sort())
+                    // objCountByDate = new Map([...objCountByDate.entries()].sort())
 
+                    this.setState({allResults: partialResults})
 
-                    //console.log(allResults)
-
-
-                    // TRAVERSE objCountByDate and compare totals to one day prior
-                    let prevDayCount = 0
-                    for (let [dateString, result] of objCountByDate) {
-                        finalCountByDate.set(dateString, result - prevDayCount)
-
-                        prevDayCount = result
-
-                    }
-
-
-                    let finalCountByDateAverage = new Map()
-
-                    let finalCountByWeekAverage = new Map()
-
-                    let queue = []
-                    let finalCountByDateLength = finalCountByDate.size
-
-                    let i = 0
-                    for (let [dateString, result] of finalCountByDate) {
-                        i++
+                    this.refreshResults()
 
 
 
-                        queue.push(result)
-
-                        if(i > finalCountByDateLength - 5){
-                            while(queue.length > 3)
-                                queue.shift()
-                        }
-                        else{
-                            if (queue.length > 10)
-                                queue.shift()
-                        }
-
-
-                        let average = 0
-                        for (let value of queue) {
-                            average += value
-                        }
-                        average /= queue.length
-
-                        finalCountByDateAverage.set(dateString, average)
-                    }
-
-
-
-                    // Calculate weekly totals
-                    let count = 0
-                    let totalCases = 0
-                    let prevDateString = ""
-                    for (let [dateString, result] of objCountByDate) {
-                        count += 1
-                        totalCases += result
-
-                        //let average = 0
-
-                        //average /= queue.length
-                        if (count % 7 == 0) {
-
-                            finalCountByWeekAverage.set(prevDateString + " to " + dateString, totalCases)
-                            prevDateString = dateString
-                            totalCases = 0
-                        }
-
-
-                    }
-
-
-                    this.props.updateState({
-                        finalCountByDate: finalCountByDate,
-                        finalCountByDateAverage: finalCountByDateAverage,
-                        finalCountByWeekAverage: finalCountByWeekAverage,
-                        loading: false
-                    })
-
-
-                    //console.log(finalCountByDate)
 
                 }
             )
     }
 
+
+
+
+    refreshResults() {
+
+        let objCountByDate = new Map();
+
+        let zipCodesAllowed;
+
+        if (this.props.stateObj.filter == true) {
+            zipCodesAllowed = [92109]
+
+
+        }
+        else
+            zipCodesAllowed = this.props.stateObj.zipCodesAllowed
+
+        for (let result of this.state.allResults) {
+
+            let data2 = result
+
+            let zipCode = data2.ziptext
+
+            let caseCount = data2.case_count
+
+            let updateDate = data2.updatedate
+            let dateString = updateDate.slice(0, updateDate.indexOf(' '))
+
+            if (zipCodesAllowed.includes(parseInt(zipCode))) {
+                let currentDate
+                if (this.props.stateObj.loadMore == true) {
+                    currentDate = new Date("May 25, 2020")
+
+                }
+                else{
+                    currentDate = new Date("August 01, 2020")
+                }
+
+
+
+                let dateFormat = require('dateformat');
+                let currentDateString = dateFormat(currentDate, "yyyy/mm/dd");
+
+                // Only show results after cutoff date
+                if (currentDateString >= dateString) {
+                    continue
+                }
+
+                if (objCountByDate.has(dateString)) {
+                    objCountByDate.set(dateString, objCountByDate.get(dateString) + caseCount)
+
+                } else {
+                    objCountByDate.set(dateString, caseCount)
+                }
+
+
+            }
+        }
+        objCountByDate = new Map([...objCountByDate.entries()].sort())
+
+        this.setState({objCountByDate: objCountByDate})
+
+    }
+
     
     componentDidMount(){
-        this.refreshResults()
+        //this.refreshResults()
     }
     componentDidUpdate(prevProps, prevState){
 
@@ -203,8 +181,86 @@ class ResultsComponent extends Component {
 
 
     render(){
+        console.log(this.state)
+        let finalCountByDate = new Map()
+        let objCountByDate = this.state.objCountByDate
+
+        // TRAVERSE objCountByDate and compare totals to one day prior
+        let prevDayCount = 0
+
+        for (let [dateString, result] of objCountByDate) {
+            finalCountByDate.set(dateString, result - prevDayCount)
+
+            prevDayCount = result
+
+        }
+        // Delete first item of finalCountByDate
+        finalCountByDate.delete(finalCountByDate.keys().next().value)
+
+        let finalCountByDateAverage = new Map()
+
+        let finalCountByWeekAverage = new Map()
+
+        let queue = []
+        let finalCountByDateLength = finalCountByDate.size
+
+        let i = 0
+        for (let [dateString, result] of finalCountByDate) {
+            i++
+            queue.push(result)
+
+            if(i > finalCountByDateLength - 5){
+                while(queue.length > 3)
+                    queue.shift()
+            }
+            else{
+                if (queue.length > 10)
+                    queue.shift()
+            }
 
 
+            let average = 0
+            for (let value of queue) {
+                average += value
+            }
+            average /= queue.length
+
+            finalCountByDateAverage.set(dateString, average)
+        }
+
+
+        // Calculate weekly totals
+        /*
+        let count = 0
+        let totalCases = 0
+        let prevDateString = ""
+        for (let [dateString, result] of objCountByDate) {
+            count += 1
+            totalCases += result
+
+            //let average = 0
+
+            //average /= queue.length
+            if (count % 7 == 0) {
+
+                finalCountByWeekAverage.set(prevDateString + " to " + dateString, totalCases)
+                prevDateString = dateString
+                totalCases = 0
+            }
+
+
+        }
+*/
+
+        // this.props.updateState({
+        //     finalCountByDate: finalCountByDate,
+        //     finalCountByDateAverage: finalCountByDateAverage,
+        //     finalCountByWeekAverage: finalCountByWeekAverage,
+        //     loading: false
+        // })
+
+
+        //console.log(finalCountByDate)
 
 
         // var CanvasJS = CanvasJSReact.CanvasJS;
@@ -220,8 +276,14 @@ class ResultsComponent extends Component {
 
         let populationTotal = 0
 
-        for(let value of this.props.stateObj.associatedPopulations){
-            populationTotal += value
+
+        if (this.props.stateObj.filter == false) {
+            for (let value of this.props.stateObj.associatedPopulations) {
+                populationTotal += value
+            }
+        }
+        else{
+            populationTotal = 49744
         }
 
 
@@ -231,7 +293,7 @@ class ResultsComponent extends Component {
 
         let objectWeekly = {}
 
-        let reversedMapAverage = new Map([...this.props.stateObj.finalCountByDateAverage]);
+        let reversedMapAverage = new Map([...finalCountByDateAverage]);
 
         let count1 = 0
         reversedMapAverage.forEach((value, key) => {
@@ -254,7 +316,7 @@ class ResultsComponent extends Component {
 
         });
 
-        let reversedMap = new Map([...this.props.stateObj.finalCountByDate]);
+        let reversedMap = new Map([...finalCountByDate]);
 
         reversedMap.forEach((value, key) => {
             var keys = key.split('.'),
@@ -269,9 +331,9 @@ class ResultsComponent extends Component {
 
         });
 
-        let reversedMapWeekly = new Map([...this.props.stateObj.finalCountByDate].reverse());
+        let reversedMapWeekly = new Map([...finalCountByDate].reverse());
 
-        let finalCountByDateLength = this.props.stateObj.finalCountByDate.length
+        //let finalCountByDateLength = this.props.stateObj.finalCountByDate.length
 
         let count = 0
         let totalCases = 0
@@ -450,7 +512,7 @@ class ResultsComponent extends Component {
                 fontSize: 22
             },
             subtitles: [{
-                text: "Purple Tier > 7 per 100k (restrictions)"
+                text: "Purple Tier restrictions (>7 per 100k)"
             }],
             axisY2: {
                 labelFontSize: 18
