@@ -22,7 +22,6 @@ const rounded = num => {
     }
 };
 
-let dateFormat = require('dateformat');
 
 const colorScale = scaleQuantize()
     .domain([0, 10])

@@ -17,7 +17,7 @@ import { csv } from "d3-fetch";
 import MapChart from "./MapChart";
 import MapChartHeatmap from "./MapChartHeatmap";
 
-let dateFormat = require('dateformat');
+const dateFormat = require('dateformat');
 
 let CanvasJSChart = CanvasJSReact.CanvasJSChart;
 
@@ -129,10 +129,13 @@ class ResultsComponent extends Component {
 
     refreshResults() {
 
+        let startDate1 = this.props.stateObj.startDate
+
         let objCountByDate = new Map()
         let zipCodeByDate = new Map()
 
         let zipCodesAllowed = this.props.zipCodesAllowed
+        let associatedPopulationsObj = this.props.stateObj.associatedPopulationsObj
 
         for (let result of this.state.allResults) {
 
@@ -154,14 +157,15 @@ class ResultsComponent extends Component {
             // let date = new Date(updateDate.slice(0, updateDate.indexOf(' ')))
             // let dateString = date.getFullYear() + "/" + date.getMonth() + "/" + date.getDate()
 
-            // if (zipCodesAllowed.includes(parseInt(zipCode))) {
+            if (associatedPopulationsObj[zipCode] != null) {
                 let currentDate
                 if (this.props.stateObj.loadMore == true) {
                     currentDate = new Date("June 06, 2020")
 
                 }
                 else{
-                    currentDate = new Date("August 01, 2020")
+                     currentDate = new Date("August 01, 2020")
+                    // currentDate = startDate1
                 }
 
 
@@ -185,7 +189,7 @@ class ResultsComponent extends Component {
 
                     zipCodeByDate.set(dateString, newMap)
                 }
-            // }
+            }
         }
 
         objCountByDate = new Map([...objCountByDate.entries()].sort())
@@ -273,6 +277,36 @@ class ResultsComponent extends Component {
 
 
 
+        let startDate = new Date()
+        startDate.setDate(startDate.getDate() - 7)
+        startDate = dateFormat(startDate, "yyyy/mm/dd")
+        let endDate = new Date()
+        endDate.setDate(endDate.getDate() - 2)
+        endDate = dateFormat(endDate, "yyyy/mm/dd")
+
+        // let startDate = this.props.stateObj.startDate
+        // let endDate =  new Date()
+        // endDate.setDate(endDate.getDate() - 2)
+        // endDate = dateFormat(endDate, "yyyy/mm/dd")
+
+        let zipCodeMap = new Map()
+
+        let getDaysArray = function(start, end) {
+            let arr
+            let dt
+            for(arr=[], dt=new Date(start); dt<=end; dt.setDate(dt.getDate()+1)){
+                arr.push(new Date(dt));
+            }
+            return arr;
+        };
+
+        let dateRangeArray = getDaysArray(new Date(startDate), new Date(endDate));
+
+        let dateRangeLength = dateRangeArray.length
+
+
+
+
 
         let dataPointsArrayAverage = []
         let dataPointsArray = []
@@ -282,10 +316,15 @@ class ResultsComponent extends Component {
 
         let populationTotal = 0
 
-        this.props.stateObj.zipCodesAllowed.forEach((zipCode) => {
+        if(this.props.stateObj.singleZip){
+            populationTotal = this.props.stateObj.associatedPopulationsObj[this.props.stateObj.singleZip]
+        }
+        else {
+            this.props.stateObj.zipCodesAllowed.forEach((zipCode) => {
 
-            populationTotal += this.props.stateObj.associatedPopulationsObj[zipCode]
-        })
+                populationTotal += this.props.stateObj.associatedPopulationsObj[zipCode]
+            })
+        }
 
         let object = {}
 
@@ -311,7 +350,7 @@ class ResultsComponent extends Component {
 
 
 
-                dataPointsArrayPerCapita.push({x: new Date(key), y: Math.round(value / populationTotal * 100000)})
+
             }
 
         });
@@ -325,6 +364,8 @@ class ResultsComponent extends Component {
 
             if(value > 0) {
                 dataPointsArray.push({x: new Date(key), y: value})
+
+                dataPointsArrayPerCapita.push({x: new Date(key), y: Math.round((value / populationTotal) * 100000)})
 
 
             }
@@ -463,7 +504,7 @@ class ResultsComponent extends Component {
         const options_average = {
             animationEnabled: true,
             title:{
-                text: "Cases per day (averaged)",
+                text: "Cases per day (exact)",
                 fontSize: 22
             },
             axisY2: {
@@ -483,7 +524,8 @@ class ResultsComponent extends Component {
                 yValueFormatString: "#",
                 xValueFormatString: "MMM D, YYYY (DDDD)",
                 type: "spline",
-                dataPoints: dataPointsArrayAverage
+                // dataPoints: dataPointsArrayAverage
+                dataPoints: dataPointsArray
             }]
         }
 
@@ -526,23 +568,9 @@ class ResultsComponent extends Component {
 
 
 
-        let startDate = new Date()
-        startDate.setDate(startDate.getDate() - 7)
-        startDate = dateFormat(startDate, "yyyy/mm/dd")
-        let endDate = dateFormat(new Date(), "yyyy/mm/dd")
 
-        let zipCodeMap = new Map()
 
-        let getDaysArray = function(start, end) {
-            let arr
-            let dt
-            for(arr=[], dt=new Date(start); dt<=end; dt.setDate(dt.getDate()+1)){
-                arr.push(new Date(dt));
-            }
-            return arr;
-        };
 
-        let dateRangeArray = getDaysArray(new Date(startDate), new Date(endDate));
 
         dateRangeArray.forEach((date) => {
             let dateFormatted = dateFormat(date, "yyyy/mm/dd")
@@ -568,6 +596,8 @@ class ResultsComponent extends Component {
 
         })
 
+        console.log(finalZipCountByDate)
+
         this.setState({
             zipCodeMap: zipCodeMap,
             finalZipCountByDate: finalZipCountByDate,
@@ -581,14 +611,14 @@ class ResultsComponent extends Component {
 
     }
 
-    
+
     componentDidMount(){
         // this.refreshResults()
     }
     componentDidUpdate(prevProps, prevState){
-
-        if(prevProps.stateObj.singleZip != this.props.stateObj.singleZip || (prevProps.stateObj.loadMore != this.props.stateObj.loadMore))
+        if(prevProps.stateObj != this.props.stateObj) {
             this.refreshResults()
+        }
 
     }
 

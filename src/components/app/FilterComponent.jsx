@@ -1,9 +1,7 @@
 import React, {Component, useState} from "react";
 import {Button} from "react-bootstrap";
 
-
-
-import ReactTooltip from "react-tooltip";
+const dateFormat = require('dateformat');
 
 
 class FilterComponent extends Component{
@@ -14,6 +12,7 @@ class FilterComponent extends Component{
         this.handleChange = this.handleChange.bind(this)
         this.loadMore = this.loadMore.bind(this)
         this.resetChart = this.resetChart.bind(this)
+        this.setStartDate = this.setStartDate.bind(this)
 
         this.state = {
             showPbButton: true,
@@ -38,6 +37,16 @@ class FilterComponent extends Component{
         this.loadMore(false)
         this.setState({showPbButton: true, showLoadButton: true})
     }
+    setStartDate(daysAgo){
+        let startDate = new Date()
+        startDate.setDate(startDate.getDate() - daysAgo)
+        startDate = dateFormat(startDate, "yyyy/mm/dd")
+        // this.setState({: false})
+        this.props.handleStateObj({startDate: startDate})
+        console.log(this.props.startDate)
+
+    }
+
 
 
 
@@ -57,7 +66,10 @@ class FilterComponent extends Component{
 
                 <div className="topSection">
                     {/*{ this.state.showPbButton ? <Button variant="secondary" className="show-pb" onClick={() => {this.handleChange(true)}}>Show PB only</Button> : null }*/}
-                    { this.state.showLoadButton ? <Button variant="primary" className="show-pb" onClick={() => {this.loadMore(true)}}>Load more dates</Button> : null }
+
+                    <Button variant="secondary" className="show-pb" onClick={() => {this.setStartDate(7)}}>Show past week</Button>
+
+                    { this.state.showLoadButton ? <Button variant="primary" className="show-pb" onClick={() => {this.loadMore(true)}}>Show all dates</Button> : null }
 
                     { this.state.showPbButton || this.state.showLoadButton ? null : <Button variant="secondary" className="show-pb" onClick={this.resetChart}>Reset Graphs</Button> }
 

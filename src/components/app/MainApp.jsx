@@ -27,6 +27,7 @@ class MainApp extends Component{
             finalPerCapitaByDate: new Map(),
             finalPerCapitaByDateAverage: new Map(),
             finalCountByWeekAverage: new Map(),
+            startDate: new Date(),
             // Not including anything north of sorrento valley
             zipCodesAllowed: [
                 92037,
@@ -124,11 +125,15 @@ class MainApp extends Component{
         this.handleStateObj = this.handleStateObj.bind(this)
 
 
+
+
     }
 
     handleStateObj(stateObj){
+
         this.setState(stateObj)
     }
+
 
     updateState(newState){
         this.setState(newState)
@@ -142,7 +147,7 @@ class MainApp extends Component{
 
 
     render(){
-
+        console.log(this.state.startDate)
 
         return(
             <>
@@ -150,7 +155,7 @@ class MainApp extends Component{
                 <div className="container">
 
 
-                    <FilterComponent stateObj={this.state} handleStateObj={this.handleStateObj}></FilterComponent>
+                    <FilterComponent startDate={this.state.startDate} handleStateObj={this.handleStateObj}></FilterComponent>
 
                     <div className="clearfix"></div>
 
@@ -160,7 +165,7 @@ class MainApp extends Component{
 
                     <h5>All covid results within this region</h5>
                     <br />
-                    <img className="boundary-img" src={boundary} />
+                    {/*<img className="boundary-img" src={boundary} />*/}
                     <br /><br /><br /><br /><br /><br /><br /><br />
 
 
