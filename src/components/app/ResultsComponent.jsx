@@ -144,6 +144,7 @@ class ResultsComponent extends Component {
 
             let updateDate = data2.updatedate
             let dateString = updateDate.slice(0, updateDate.indexOf(' '))
+
             // let date = new Date(updateDate.slice(0, updateDate.indexOf(' ')))
             // let dateString = date.getFullYear() + "/" + date.getMonth() + "/" + date.getDate()
 
@@ -156,8 +157,6 @@ class ResultsComponent extends Component {
                 else{
                     currentDate = new Date("August 01, 2020")
                 }
-
-
 
 
                 let currentDateString = dateFormat(currentDate, "yyyy/mm/dd");
@@ -180,37 +179,16 @@ class ResultsComponent extends Component {
 
                     zipCodeByDate.set(dateString, newMap)
                 }
-
-
             }
-
-
-
-
         }
 
         objCountByDate = new Map([...objCountByDate.entries()].sort())
         zipCodeByDate = new Map([...zipCodeByDate.entries()].sort())
 
-        // console.log(zipCodeByDate)
-
-        // this.setState({objCountByDate: objCountByDate, zipCodeByDate: zipCodeByDate})
 
 
-
-
-
-
-
-        //console.log(this.state)
         let finalCountByDate = new Map()
-        // let objCountByDate = this.state.objCountByDate
-        //
-        // let zipCodeByDate = this.state.zipCodeByDate
-
-
         let finalZipCountByDate = new Map()
-
         let finalCountByWeekAverage = new Map()
 
         // TRAVERSE objCountByDate and compare totals to one day prior
@@ -283,42 +261,6 @@ class ResultsComponent extends Component {
         }
 
 
-        // Calculate weekly totals
-        /*
-        let count = 0
-        let totalCases = 0
-        let prevDateString = ""
-        for (let [dateString, result] of objCountByDate) {
-            count += 1
-            totalCases += result
-
-            //let average = 0
-
-            //average /= queue.length
-            if (count % 7 == 0) {
-
-                finalCountByWeekAverage.set(prevDateString + " to " + dateString, totalCases)
-                prevDateString = dateString
-                totalCases = 0
-            }
-
-
-        }
-*/
-
-        // this.props.updateState({
-        //     finalCountByDate: finalCountByDate,
-        //     finalCountByDateAverage: finalCountByDateAverage,
-        //     finalCountByWeekAverage: finalCountByWeekAverage,
-        //     loading: false
-        // })
-
-
-        //console.log(finalCountByDate)
-
-
-        // var CanvasJS = CanvasJSReact.CanvasJS;
-        // var CanvasJSChart = CanvasJSReact.CanvasJSChart;
 
 
 
@@ -330,16 +272,11 @@ class ResultsComponent extends Component {
 
         let populationTotal = 0
 
+        this.props.stateObj.zipCodesAllowed.forEach((zipCode) => {
 
-        if (this.props.stateObj.filter == false) {
-            Object.values(this.props.stateObj.associatedPopulationsObj).forEach((population) => {
-                populationTotal += population
-            })
-        }
-        else{
-            populationTotal = 49744
-        }
-
+            populationTotal += this.props.stateObj.associatedPopulationsObj[zipCode]
+        })
+        console.log(populationTotal)
 
         let object = {}
 
@@ -414,38 +351,15 @@ class ResultsComponent extends Component {
             }
 
 
-            //
-            //
-            // var keys = key.split('.'),
-            //     last = keys.pop();
-            // keys.reduce((r, a) => r[a] = r[a] || {}, objectWeekly)[last] = value;
-            //
-            // if(value > 0) {
-            //     dataPointsArrayWeekly.push({y: value})
-            // }
 
         });
 
-
-
-
-        // console.log(dataPointsArrayWeekly)
-
-
-
-
-
-
-
-        //
-        //
         dataPointsArray.splice(0,10)
 
         dataPointsArrayAverage.splice(0,10)
 
         dataPointsArrayPerCapita.splice(0,10)
 
-        //
         // dataPointsArrayWeekly.splice(-1,1)
 
         let stripLines = [{
@@ -585,7 +499,7 @@ class ResultsComponent extends Component {
                 yValueFormatString: "#",
                 xValueFormatString: "MMM D, YYYY (DDDD)",
                 type: "spline",
-                dataPoints: dataPointsArray//dataPointsArrayPerCapita
+                dataPoints: dataPointsArrayPerCapita
             },/*{
                 axisYIndex: 1, //defaults to 0
                 yValueFormatString: "#",
@@ -603,8 +517,10 @@ class ResultsComponent extends Component {
 
 
 
-        let startDate = "2020/11/07"
-        let endDate = "2020/11/07"
+        let startDate = new Date()
+        startDate.setDate(startDate.getDate() - 7)
+        startDate = dateFormat(startDate, "yyyy/mm/dd")
+        let endDate = dateFormat(new Date(), "yyyy/mm/dd")
 
         let zipCodeMap = new Map()
 
@@ -693,6 +609,7 @@ class ResultsComponent extends Component {
 
                 />
 
+                <h3>Show/hide specific regions</h3>
                 <MapChart associatedPopulationsObj={this.props.stateObj.associatedPopulationsObj} dateRangeArray={this.state.dateRangeArray} zipCodeMap={this.state.zipCodeMap}
                           finalZipCountByDate={this.state.finalZipCountByDate} zipCodesAllowed={this.props.zipCodesAllowed} setTooltipContent={this.setContent}
                           updateZipCodesAllowed={(zipCodesAllowed) => {

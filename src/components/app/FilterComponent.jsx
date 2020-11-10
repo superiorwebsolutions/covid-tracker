@@ -47,6 +47,10 @@ class FilterComponent extends Component{
 
     render(){
 
+
+        // TODO:  Add date range
+
+        //TODO:  toggleShowAll toggleHideAll for mapchart
         return(
             <>
 

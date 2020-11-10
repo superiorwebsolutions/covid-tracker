@@ -25,7 +25,7 @@ const rounded = num => {
 let dateFormat = require('dateformat');
 
 const colorScale = scaleQuantize()
-    .domain([0, 10])
+    .domain([0, 20])
     .range([
         "#ffedea",
         "#ffcec5",
@@ -86,7 +86,7 @@ class MapChartHeatmap extends Component {
     }
 
     render() {
-        console.log(this.props.zipCodeMap)
+        // console.log(this.props.zipCodeMap)
         let count = 0
         return (
             <>
@@ -134,7 +134,7 @@ class MapChartHeatmap extends Component {
 
 
                                             if (cur) {
-                                                console.log(count)
+                                                // console.log(count)
                                                 return (
                                                     <>
                                                         <Geography

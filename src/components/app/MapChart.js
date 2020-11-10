@@ -152,11 +152,11 @@ class MapChart extends Component {
                                             if (cur) {
                                                 let cellCurrentlyActive = this.props.zipCodesAllowed.includes(parseInt(cur.id))
                                                 let cellStyle = cellCurrentlyActive ? {
-                                                    fill: "#ff0000",
+                                                    fill: "darkgray",
                                                     stroke: "black",
                                                     strokeWidth: 0.5,
                                                     outline: 'blue'
-                                                } : {fill: "#666", stroke: "black", strokeWidth: 0.5, outline: 'blue'};
+                                                } : {fill: "whitesmoke", stroke: "black", strokeWidth: 0.5, outline: 'blue'};
                                                 let cellStyleHover
                                                 if (cellCurrentlyActive) {
                                                     cellStyleHover = cellStyle
