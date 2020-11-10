@@ -79,6 +79,9 @@ class MainApp extends Component{
                 92113: 53688,
                 92136: 10699,
     },
+
+            // TODO:  Add zipCodeObject that stores the names of the cities (use this in Map.Chart.js setTooltipContent
+
             associatedPopulations: [
                 46781,
                 4179,
@@ -128,6 +131,7 @@ class MainApp extends Component{
 
     updateState(newState){
         this.setState(newState)
+        // console.log(this.state)
     }
 
 
@@ -140,7 +144,7 @@ class MainApp extends Component{
 
 
 
-
+console.log(this.state)
 
         return(
             <>
@@ -154,7 +158,7 @@ class MainApp extends Component{
 
 
 
-                    <ResultsComponent stateObj={this.state} updateState={this.updateState}></ResultsComponent>
+                    <ResultsComponent stateObj={this.state} zipCodesAllowed={this.state.zipCodesAllowed} updateState={this.updateState}></ResultsComponent>
 
                     <h5>All covid results within this region</h5>
                     <br />

@@ -15,6 +15,7 @@ import { scaleQuantize } from "d3-scale";
 import { csv } from "d3-fetch";
 
 import MapChart from "./MapChart";
+import MapChartHeatmap from "./MapChartHeatmap";
 
 let dateFormat = require('dateformat');
 
@@ -30,10 +31,15 @@ class ResultsComponent extends Component {
             objCountByDate: new Map(),
             zipCodeByDate: new Map(),
             zipCodeMap: new Map(),
+            dateRangeArray: [],
+            finalZipCountByDate: new Map(),
+            optionsWeekly: {},
+            optionsDaily: {},
             content: ""
         }
         this.refreshResults = this.refreshResults.bind(this)
         this.setContent = this.setContent.bind(this)
+        this.updateZipCodesAllowed = this.updateZipCodesAllowed.bind(this)
 
         ServiceApi.getAllResults()
             .then(
@@ -111,6 +117,11 @@ class ResultsComponent extends Component {
             )
     }
 
+    updateZipCodesAllowed(zipCodesAllowed){
+        this.props.updateState({zipCodesAllowed: zipCodesAllowed})
+        console.log(this.props.zipCodesAllowed)
+    }
+
 
 
 
@@ -119,15 +130,7 @@ class ResultsComponent extends Component {
         let objCountByDate = new Map()
         let zipCodeByDate = new Map()
 
-        let zipCodesAllowed;
-
-        if (this.props.stateObj.filter == true) {
-            zipCodesAllowed = [92109]
-
-
-        }
-        else
-            zipCodesAllowed = this.props.stateObj.zipCodesAllowed
+        let zipCodesAllowed = this.props.zipCodesAllowed
 
         for (let result of this.state.allResults) {
 
@@ -180,6 +183,10 @@ class ResultsComponent extends Component {
 
 
             }
+
+
+
+
         }
 
         objCountByDate = new Map([...objCountByDate.entries()].sort())
@@ -187,34 +194,19 @@ class ResultsComponent extends Component {
 
         // console.log(zipCodeByDate)
 
-        this.setState({objCountByDate: objCountByDate, zipCodeByDate: zipCodeByDate})
-
-    }
-
-    
-    componentDidMount(){
-        //this.refreshResults()
-    }
-    componentDidUpdate(prevProps, prevState){
-
-        if(prevProps.stateObj.filter != this.props.stateObj.filter || (prevProps.stateObj.loadMore != this.props.stateObj.loadMore))
-            this.refreshResults()
-
-    }
-
-    setContent(obj){
-        this.setState({content: obj})
-    }
+        // this.setState({objCountByDate: objCountByDate, zipCodeByDate: zipCodeByDate})
 
 
 
 
-    render(){
+
+
+
         //console.log(this.state)
         let finalCountByDate = new Map()
-        let objCountByDate = this.state.objCountByDate
-
-        let zipCodeByDate = this.state.zipCodeByDate
+        // let objCountByDate = this.state.objCountByDate
+        //
+        // let zipCodeByDate = this.state.zipCodeByDate
 
 
         let finalZipCountByDate = new Map()
@@ -488,7 +480,7 @@ class ResultsComponent extends Component {
             labelFontSize: 24,
             labelAlign: "far",
             opacity: .6,
-             color:"transparent",
+            color:"transparent",
             labelFontColor: "#f44336",
             showOnTop: true,
             labelBackgroundColor: "white",
@@ -593,7 +585,7 @@ class ResultsComponent extends Component {
                 yValueFormatString: "#",
                 xValueFormatString: "MMM D, YYYY (DDDD)",
                 type: "spline",
-                dataPoints: dataPointsArrayPerCapita
+                dataPoints: dataPointsArray//dataPointsArrayPerCapita
             },/*{
                 axisYIndex: 1, //defaults to 0
                 yValueFormatString: "#",
@@ -609,22 +601,10 @@ class ResultsComponent extends Component {
 
 
 
-        const colorScale = scaleQuantize()
-            .domain([0, 10])
-            .range([
-                "#ffedea",
-                "#ffcec5",
-                "#ffad9f",
-                "#ff8a75",
-                "#ff5533",
-                "#e2492d",
-                "#be3d26",
-                "#9a311f",
-                "#782618"
-            ]);
 
-        let startDate = "2020/10/01"
-        let endDate = "2020/11/09"
+
+        let startDate = "2020/11/07"
+        let endDate = "2020/11/07"
 
         let zipCodeMap = new Map()
 
@@ -641,9 +621,6 @@ class ResultsComponent extends Component {
 
         dateRangeArray.forEach((date) => {
             let dateFormatted = dateFormat(date, "yyyy/mm/dd")
-
-
-
 
             if(finalZipCountByDate.has(dateFormatted)) {
                 let singleDayMap = finalZipCountByDate.get(dateFormatted)
@@ -666,161 +643,37 @@ class ResultsComponent extends Component {
 
         })
 
-        this.setState({zipCodeMap: zipCodeMap})
+        this.setState({
+            zipCodeMap: zipCodeMap,
+            finalZipCountByDate: finalZipCountByDate,
+            dateRangeArray: dateRangeArray,
+            optionsWeekly: options_weekly,
+            optionsDaily: options_daily
+
+        })
 
 
-/*
-        const MapChart = ({ setTooltipContent }) => {
+    }
 
-            let [dateRangeArray, setDateRange] = useState([]);
-            let [zipCodeMap, setData] = useState(new Map());
+    
+    componentDidMount(){
+        this.refreshResults()
+    }
+    componentDidUpdate(prevProps, prevState){
 
+        if(prevProps.stateObj.filter != this.props.stateObj.filter || (prevProps.stateObj.loadMore != this.props.stateObj.loadMore))
+            this.refreshResults()
 
-            useEffect(() => {
+    }
 
-                // let zipCodeByDate = this.state.zipCodeByDate
-
-                let startDate = "2020/10/01"
-                let endDate = "2020/11/09"
-
-
-
-                let getDaysArray = function(start, end) {
-                    let arr
-                    let dt
-                    for(arr=[], dt=new Date(start); dt<=end; dt.setDate(dt.getDate()+1)){
-                        arr.push(new Date(dt));
-                    }
-                    return arr;
-                };
-
-                let dateRangeArray = getDaysArray(new Date(startDate), new Date(endDate));
-
-                dateRangeArray.forEach((date) => {
-                    let dateFormatted = dateFormat(date, "yyyy/mm/dd")
+    setContent(obj){
+        this.setState({content: obj})
+    }
 
 
 
 
-                    if(finalZipCountByDate.has(dateFormatted)) {
-                        let singleDayMap = finalZipCountByDate.get(dateFormatted)
-
-                        singleDayMap.forEach((caseCount, zipCode) => {
-
-                            if (zipCodeMap.has(zipCode)) {
-                                let prevSingleZipCount = zipCodeMap.get(zipCode)
-
-                                zipCodeMap.set(zipCode, parseInt(caseCount) + parseInt(prevSingleZipCount))
-                            } else {
-                                zipCodeMap.set(zipCode, parseInt(caseCount))
-                            }
-
-
-                        })
-                    }
-
-
-
-                })
-                setDateRange(dateRangeArray)
-                setData(zipCodeMap)
-
-                 // this.setState({zipCodeMap: zipCodeMap})
-
-
-                // if(zipCodeByDate.has("2020/11/05")) {
-                //
-                //     let zipCountArray = zipCodeByDate.get("2020/11/05")
-                //
-                //     data = zipCountArray
-                //
-                // }
-            }, []);
-
-
-
-
-
-            // data.forEach((singleDayMap, dateString) => {
-            //     let tempMap = new Map()
-            //     if(dateString >= startDate && dateString <= endDate){
-            //
-            //     }
-            //     zipCodeMap.set(dateString)
-            // })
-
-            const rounded = num => {
-                if (num > 1000000000) {
-                    return Math.round(num / 100000000) / 10 + "Bn";
-                } else if (num > 1000000) {
-                    return Math.round(num / 100000) / 10 + "M";
-                } else {
-                    return Math.round(num / 100) / 10 + "K";
-                }
-            };
-
-
-
-            return (
-                <>
-                    <ComposableMap data-tip="" projection="geoAlbersUsa" projectionConfig={{ scale: 100000 }}
-                                   width={980}
-                                   height={551}
-                                   style={{
-                                       width: "100%",
-                                       height: "auto",
-                                   }}>
-                        <ZoomableGroup center={[ -117.192289, 32.769148  ]} disablePanning>
-
-                            <Geographies geography="./zipcodes.geojson">
-                                {({ geographies }) =>
-                                    geographies.map(geo => {
-
-                                        let geoZip = geo.properties.zip
-
-
-                                        let cur = null
-                                        if(zipCodeMap.has(geoZip)){
-                                            let caseCount = zipCodeMap.get(geoZip)
-                                            let numDays = dateRangeArray.length
-
-
-                                            let caseCountPerCapita100k = ((caseCount / this.props.stateObj.associatedPopulationsObj[geoZip.toString()]) * 100000) / numDays
-
-                                            cur = {id: geoZip, caseCount: caseCountPerCapita100k}
-                                        }
-
-
-                                        if(cur) {
-                                            return (
-                                                <Geography
-                                                    key={geo.rsmKey}
-                                                    geography={geo}
-                                                    // fill={colorScale(cur ? cur.caseCount : "#EEE")}
-
-                                                    onMouseEnter={() => {
-                                                        const { NAME, POP_EST } = geo.properties;
-                                                        setTooltipContent('hi')
-                                                        // setTooltipContent(`${NAME} — ${rounded(POP_EST)}`);
-                                                    }}
-                                                    onMouseLeave={() => {
-                                                        setTooltipContent("");
-                                                    }}
-
-                                                />
-                                            );
-                                        }
-                                    })
-                                }
-                            </Geographies>
-                        </ZoomableGroup>
-                    </ComposableMap>
-                </>
-            );
-        };
-
-    */
-
+    render(){
 
 
         return(
@@ -828,18 +681,36 @@ class ResultsComponent extends Component {
 
 
                 <br />
+                <h3>Current risk per capita (past 7 days)</h3>
+                <MapChartHeatmap associatedPopulationsObj={this.props.stateObj.associatedPopulationsObj} dateRangeArray={this.state.dateRangeArray} zipCodeMap={this.state.zipCodeMap}
+                                 finalZipCountByDate={this.state.finalZipCountByDate} zipCodesAllowed={this.props.zipCodesAllowed} setTooltipContent={this.setContent}
+                                 updateZipCodesAllowed={(zipCodesAllowed) => {
+                                     this.updateZipCodesAllowed(zipCodesAllowed)
+                                     this.refreshResults()
+                                 }
+                                 }
 
-                <MapChart associatedPopulationsObj={this.props.stateObj.associatedPopulationsObj} finalZipCountByDate={finalZipCountByDate} setTooltipContent={this.setContent} />
+
+                />
+
+                <MapChart associatedPopulationsObj={this.props.stateObj.associatedPopulationsObj} dateRangeArray={this.state.dateRangeArray} zipCodeMap={this.state.zipCodeMap}
+                          finalZipCountByDate={this.state.finalZipCountByDate} zipCodesAllowed={this.props.zipCodesAllowed} setTooltipContent={this.setContent}
+                          updateZipCodesAllowed={(zipCodesAllowed) => {
+                              this.updateZipCodesAllowed(zipCodesAllowed)
+                              this.refreshResults()
+                          }
+                          }
+                              />
+
+
                 <ReactTooltip>{this.state.content}</ReactTooltip>
 
                 <div className="contributionChart">
-                    {/*<MapChart setTooltipContent={this.setTooltipContent} />*/}
-                    {/*<ReactTooltip>{this.state.content}</ReactTooltip>*/}
-                    <CanvasJSChart options={options_weekly} />
-                    <br />
-                    <CanvasJSChart options={options_average} />
-                    <br />
-                    <CanvasJSChart options={options_daily} />
+                    <CanvasJSChart options={this.state.optionsWeekly} />
+                    {/*<br />*/}
+                    {/*<CanvasJSChart options={options_average} />*/}
+                    {/*<br />*/}
+                    <CanvasJSChart options={this.state.optionsDaily} />
                 </div>
 
                 <br /> <br /> <br />

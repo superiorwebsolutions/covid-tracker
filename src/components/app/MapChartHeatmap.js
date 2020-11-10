@@ -38,7 +38,7 @@ const colorScale = scaleQuantize()
         "#782618"
     ]);
 
-class MapChart extends Component {
+class MapChartHeatmap extends Component {
 
 
 
@@ -72,26 +72,7 @@ class MapChart extends Component {
 
 
     handleClick(zipCode){
-        zipCode = parseInt(zipCode)
-        // let active = this.state.activeZipCodes
-        let active = this.props.zipCodesAllowed
 
-        let inArray = false
-        for(let i = 0 ; i < active.length; i++){
-            if(parseInt(active[i])== zipCode){
-                active.splice(i, 1)
-                inArray = true
-            }
-        }
-        if(!inArray){
-            active.push(zipCode)
-        }
-        this.props.updateZipCodesAllowed(active)
-        // this.setState({
-        //     activeZipCodes: active
-        // })
-
-        // console.log(this.state.activeZipCodes)
     };
 
 
@@ -105,6 +86,8 @@ class MapChart extends Component {
     }
 
     render() {
+        console.log(this.props.zipCodeMap)
+        let count = 0
         return (
             <>
                 <ComposableMap data-tip="" projection="geoAlbersUsa" projectionConfig={{scale: 80000}}
@@ -126,85 +109,63 @@ class MapChart extends Component {
                                     geographies.map((geo) => {
 
                                         let geoZip = geo.properties.zip
-                                        if(this.props.associatedPopulationsObj[geoZip]) {
+                                        // if(this.props.associatedPopulationsObj[geoZip]) {
 
 
                                             let cur = null
-                                            // if (this.props.zipCodeMap.has(geoZip)) {
-                                            let caseCount = this.props.zipCodeMap.get(geoZip)
-                                            let numDays = this.props.dateRangeArray.length
-                                            numDays = 1
 
-                                            // TODO:  Add this functionality
-                                            // let cityName = geo.properties.name
+                                            if (this.props.zipCodeMap.has(geoZip)) {
+                                                let caseCount = this.props.zipCodeMap.get(geoZip)
+                                                let numDays = this.props.dateRangeArray.length
+                                                count += caseCount
 
-                                            let caseCountPerCapita100k = ((caseCount / this.props.associatedPopulationsObj[geoZip]) * 100000) / numDays
+                                                // TODO:  Add this functionality
+                                                // let cityName = geo.properties.name
 
-                                            cur = {
-                                                id: geoZip,
-                                                caseCount: Math.round(caseCountPerCapita100k),
-                                                cases: caseCount
-                                            }
+                                                let caseCountPerCapita100k = ((caseCount / this.props.associatedPopulationsObj[geoZip]) * 100000) / numDays
 
-                                            // }
+                                                cur = {
+                                                    id: geoZip,
+                                                    caseCount: Math.round(caseCountPerCapita100k),
+                                                    cases: caseCount
+                                                }
+
+                                             }
 
 
                                             if (cur) {
-                                                let cellCurrentlyActive = this.props.zipCodesAllowed.includes(parseInt(cur.id))
-                                                let cellStyle = cellCurrentlyActive ? {
-                                                    fill: "#ff0000",
-                                                    stroke: "black",
-                                                    strokeWidth: 0.5,
-                                                    outline: 'blue'
-                                                } : {fill: "#666", stroke: "black", strokeWidth: 0.5, outline: 'blue'};
-                                                let cellStyleHover
-                                                if (cellCurrentlyActive) {
-                                                    cellStyleHover = cellStyle
-                                                } else {
-                                                    cellStyleHover = {
-                                                        fill: "lightgray",
-                                                        stroke: "black",
-                                                        strokeWidth: 0.5,
-                                                        outline: 'blue'
-                                                    }
-                                                }
-
-
+                                                console.log(count)
                                                 return (
                                                     <>
                                                         <Geography
                                                             key={geo.rsmKey}
                                                             geography={geo}
-                                                            // fill={colorScale(cur ? cur.caseCount : "#EEE")}
+                                                            fill={colorScale(cur ? cur.caseCount : "#EEE")}
 
                                                             onClick={() => {
-                                                                this.handleClick(cur.id)
+                                                                // this.handleClick(cur.id)
+                                                                this.props.setTooltipContent("" + cur.cases + " cases per 100k")
                                                             }}
 
-                                                            onMouseEnter={() => {
-                                                                this.props.setTooltipContent("" + cur.cases)
-                                                            }}
-                                                            onMouseLeave={() => {
-                                                                this.props.setTooltipContent("");
-                                                            }}
+                                                            // onMouseEnter={() => {
+                                                            //     this.props.setTooltipContent("" + cur.cases + " cases per 100k")
+                                                            // }}
+                                                            // onMouseLeave={() => {
+                                                            //     this.props.setTooltipContent("");
+                                                            // }}
 
-                                                            style={{
-                                                                default: cellStyle,
-                                                                hover: cellStyleHover,
-                                                                pressed: cellStyle
-                                                            }}
 
                                                         />
                                                     </>
                                                 );
                                             }
-                                        }
+                                        // }
                                     })
                             }
 
-                                    {/*let cellStyle = geo.rsmKey == activeZip ? { fill: "#ff0000", stroke: "#ff0000", strokeWidth: 0.5, outline: 'none' } : { fill: "#666", stroke: "#FFF", strokeWidth: 0.5, outline: 'none' };*/}
+                            {/*let cellStyle = geo.rsmKey == activeZip ? { fill: "#ff0000", stroke: "#ff0000", strokeWidth: 0.5, outline: 'none' } : { fill: "#666", stroke: "#FFF", strokeWidth: 0.5, outline: 'none' };*/}
 
-                                    {/*let cellStyleHover = { fill: "lightgray", stroke: "lightgray", strokeWidth: 0.5, outline: 'none' }*/}
+                            {/*let cellStyleHover = { fill: "lightgray", stroke: "lightgray", strokeWidth: 0.5, outline: 'none' }*/}
 
                             {/*        return(*/}
                             {/*            <>*/}
@@ -240,7 +201,8 @@ class MapChart extends Component {
                 </ComposableMap>
             </>
         );
+
     }
 };
 
-export default MapChart
+export default MapChartHeatmap
