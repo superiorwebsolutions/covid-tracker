@@ -1,17 +1,24 @@
-import React, {Component} from "react";
+import React, { useState, useEffect, Component} from "react";
 
 import ServiceApi from "../../services/ServiceApi";
 
 import {Table} from 'react-bootstrap';
 
 import CanvasJSReact from "./canvasjs.react";
+
+
+import {ComposableMap, Geographies, Geography, ZoomableGroup} from "react-simple-maps";
+
+import ReactTooltip from 'react-tooltip'
+
+import { scaleQuantize } from "d3-scale";
+import { csv } from "d3-fetch";
+
+
+
+let dateFormat = require('dateformat');
+
 let CanvasJSChart = CanvasJSReact.CanvasJSChart;
-
-
-// import CanvasJSReact from 'canvasjs.react';
-// var CanvasJS = CanvasJSReact.CanvasJS;
-// var CanvasJSChart = CanvasJSReact.CanvasJSChart;
-
 
 class ResultsComponent extends Component {
 
@@ -20,9 +27,13 @@ class ResultsComponent extends Component {
 
         this.state = {
             allResults: new Map(),
-            objCountByDate: new Map()
+            objCountByDate: new Map(),
+            zipCodeByDate: new Map(),
+            zipCodeMap: new Map(),
+            content: ""
         }
         this.refreshResults = this.refreshResults.bind(this)
+        this.setTooltipContent = this.setTooltipContent.bind(this)
 
 
 
@@ -31,10 +42,10 @@ class ResultsComponent extends Component {
                 (response) => {
 
                     let allResultsOrig = response.data.features;
-                    allResultsOrig.reverse()
 
-                    let allResults = allResultsOrig.slice(0, 25000)
-                    allResults.reverse()
+                    let allResults = allResultsOrig.reverse()
+                    //let allResults = allResultsOrig.slice(0, 25000)
+                    //allResults.reverse()
 
 
                     let objCountByDate = new Map();
@@ -61,13 +72,12 @@ class ResultsComponent extends Component {
                         let caseCount = data.case_count
 
                         let updateDate = data.updatedate
-                        let dateString = updateDate.slice(0, updateDate.indexOf(' '))
+
+                        // Do not include any dates before 2020/05/15
+                        if(updateDate == "2020/05/15 08:00:00+00")
+                            break
 
                         if (zipCodesAllowed.includes(parseInt(zipCode))) {
-                            let currentDate = new Date("August 01, 2020")
-
-                            let dateFormat = require('dateformat');
-                            let currentDateString = dateFormat(currentDate, "yyyy/mm/dd");
 
                             // Only show results after cutoff date
                             if (caseCount == null || caseCount == 0) {
@@ -89,6 +99,7 @@ class ResultsComponent extends Component {
 
                         }
                     }
+
                     // objCountByDate = new Map([...objCountByDate.entries()].sort())
 
                     this.setState({allResults: partialResults})
@@ -107,7 +118,8 @@ class ResultsComponent extends Component {
 
     refreshResults() {
 
-        let objCountByDate = new Map();
+        let objCountByDate = new Map()
+        let zipCodeByDate = new Map()
 
         let zipCodesAllowed;
 
@@ -127,13 +139,17 @@ class ResultsComponent extends Component {
 
             let caseCount = data2.case_count
 
+            let caseCountString = caseCount.toString()
+
             let updateDate = data2.updatedate
             let dateString = updateDate.slice(0, updateDate.indexOf(' '))
+            // let date = new Date(updateDate.slice(0, updateDate.indexOf(' ')))
+            // let dateString = date.getFullYear() + "/" + date.getMonth() + "/" + date.getDate()
 
             if (zipCodesAllowed.includes(parseInt(zipCode))) {
                 let currentDate
                 if (this.props.stateObj.loadMore == true) {
-                    currentDate = new Date("May 25, 2020")
+                    currentDate = new Date("June 06, 2020")
 
                 }
                 else{
@@ -142,7 +158,7 @@ class ResultsComponent extends Component {
 
 
 
-                let dateFormat = require('dateformat');
+
                 let currentDateString = dateFormat(currentDate, "yyyy/mm/dd");
 
                 // Only show results after cutoff date
@@ -153,16 +169,27 @@ class ResultsComponent extends Component {
                 if (objCountByDate.has(dateString)) {
                     objCountByDate.set(dateString, objCountByDate.get(dateString) + caseCount)
 
+                    zipCodeByDate.get(dateString).set(zipCode, caseCount)
+
                 } else {
                     objCountByDate.set(dateString, caseCount)
+
+                    let newMap = new Map()
+                    newMap.set(zipCode, caseCount)
+
+                    zipCodeByDate.set(dateString, newMap)
                 }
 
 
             }
         }
-        objCountByDate = new Map([...objCountByDate.entries()].sort())
 
-        this.setState({objCountByDate: objCountByDate})
+        objCountByDate = new Map([...objCountByDate.entries()].sort())
+        zipCodeByDate = new Map([...zipCodeByDate.entries()].sort())
+
+        // console.log(zipCodeByDate)
+
+        this.setState({objCountByDate: objCountByDate, zipCodeByDate: zipCodeByDate})
 
     }
 
@@ -177,32 +204,70 @@ class ResultsComponent extends Component {
 
     }
 
+    setTooltipContent(obj){
+        this.setState({
+            content: obj
+        })
+    }
+
 
 
 
     render(){
-        console.log(this.state)
+        //console.log(this.state)
         let finalCountByDate = new Map()
         let objCountByDate = this.state.objCountByDate
 
-        // TRAVERSE objCountByDate and compare totals to one day prior
-        let prevDayCount = 0
+        let zipCodeByDate = this.state.zipCodeByDate
 
-        for (let [dateString, result] of objCountByDate) {
-            finalCountByDate.set(dateString, result - prevDayCount)
 
-            prevDayCount = result
-
-        }
-        // Delete first item of finalCountByDate
-        finalCountByDate.delete(finalCountByDate.keys().next().value)
-
-        let finalCountByDateAverage = new Map()
+        let finalZipCountByDate = new Map()
 
         let finalCountByWeekAverage = new Map()
 
+        // TRAVERSE objCountByDate and compare totals to one day prior
+        let prevDayCount = 0
+        let prevDayMap = new Map()
+
+        for (let [dateString, singleDayMap] of zipCodeByDate) {
+            let totalCount = 0
+            let tempMap = new Map()
+
+            for (let [zipCode, singleZipCount] of singleDayMap) {
+                let prevDaySingleZipCount = 0
+                if(prevDayMap.size != 0){
+                    prevDaySingleZipCount = prevDayMap.get(zipCode)
+                }
+                tempMap.set(zipCode, singleZipCount - prevDaySingleZipCount)
+
+                totalCount += singleZipCount
+
+            }
+
+            finalZipCountByDate.set(dateString, tempMap)
+
+            finalCountByDate.set(dateString, totalCount - prevDayCount)
+
+
+            // finalZipCodeByDateAverage.get(dateString).get()
+
+
+            prevDayCount = totalCount
+            prevDayMap = singleDayMap
+
+
+        }
+        // console.log(finalZipCountByDate)
+        // Delete first item of finalCountByDate
+        finalCountByDate.delete(finalCountByDate.keys().next().value)
+        finalZipCountByDate.delete(finalCountByDate.keys().next().value)
+
+        let finalCountByDateAverage = new Map()
+
         let queue = []
         let finalCountByDateLength = finalCountByDate.size
+
+        // TODO:  Move finalZipCountByDate to average below
 
         let i = 0
         for (let [dateString, result] of finalCountByDate) {
@@ -226,6 +291,7 @@ class ResultsComponent extends Component {
             average /= queue.length
 
             finalCountByDateAverage.set(dateString, average)
+
         }
 
 
@@ -278,9 +344,9 @@ class ResultsComponent extends Component {
 
 
         if (this.props.stateObj.filter == false) {
-            for (let value of this.props.stateObj.associatedPopulations) {
-                populationTotal += value
-            }
+            Object.values(this.props.stateObj.associatedPopulationsObj).forEach((population) => {
+                populationTotal += population
+            })
         }
         else{
             populationTotal = 49744
@@ -333,6 +399,9 @@ class ResultsComponent extends Component {
 
         let reversedMapWeekly = new Map([...finalCountByDate].reverse());
 
+        // Delete first week because it is incomplete
+        // reversedMapWeekly.delete(reversedMapWeekly.keys().next().value)
+
         //let finalCountByDateLength = this.props.stateObj.finalCountByDate.length
 
         let count = 0
@@ -370,6 +439,8 @@ class ResultsComponent extends Component {
         });
 
 
+
+
         // console.log(dataPointsArrayWeekly)
 
 
@@ -378,16 +449,16 @@ class ResultsComponent extends Component {
 
 
 
-
-
+        //
+        //
         dataPointsArray.splice(0,10)
 
         dataPointsArrayAverage.splice(0,10)
 
         dataPointsArrayPerCapita.splice(0,10)
 
-
-        dataPointsArrayWeekly.splice(-1,1)
+        //
+        // dataPointsArrayWeekly.splice(-1,1)
 
         let stripLines = [{
             startValue: new Date("2020/06/12"),
@@ -538,6 +609,179 @@ class ResultsComponent extends Component {
 
 
 
+
+
+
+
+        const colorScale = scaleQuantize()
+            .domain([0, 10])
+            .range([
+                "#ffedea",
+                "#ffcec5",
+                "#ffad9f",
+                "#ff8a75",
+                "#ff5533",
+                "#e2492d",
+                "#be3d26",
+                "#9a311f",
+                "#782618"
+            ]);
+
+
+
+        const MapChart = ({ setTooltipContent }) => {
+
+            let [dateRangeArray, setDateRange] = useState([]);
+            let [zipCodeMap, setData] = useState(new Map());
+
+
+            useEffect(() => {
+
+                // let zipCodeByDate = this.state.zipCodeByDate
+
+                let startDate = "2020/10/01"
+                let endDate = "2020/11/09"
+
+
+
+                let getDaysArray = function(start, end) {
+                    let arr
+                    let dt
+                    for(arr=[], dt=new Date(start); dt<=end; dt.setDate(dt.getDate()+1)){
+                        arr.push(new Date(dt));
+                    }
+                    return arr;
+                };
+
+                let dateRangeArray = getDaysArray(new Date(startDate), new Date(endDate));
+
+                dateRangeArray.forEach((date) => {
+                    let dateFormatted = dateFormat(date, "yyyy/mm/dd")
+
+
+
+
+                    if(finalZipCountByDate.has(dateFormatted)) {
+                        let singleDayMap = finalZipCountByDate.get(dateFormatted)
+
+                        singleDayMap.forEach((caseCount, zipCode) => {
+
+                            if (zipCodeMap.has(zipCode)) {
+                                let prevSingleZipCount = zipCodeMap.get(zipCode)
+
+                                zipCodeMap.set(zipCode, parseInt(caseCount) + parseInt(prevSingleZipCount))
+                            } else {
+                                zipCodeMap.set(zipCode, parseInt(caseCount))
+                            }
+
+
+                        })
+                    }
+
+
+
+                })
+                setDateRange(dateRangeArray)
+                setData(zipCodeMap)
+
+                 // this.setState({zipCodeMap: zipCodeMap})
+
+
+                // if(zipCodeByDate.has("2020/11/05")) {
+                //
+                //     let zipCountArray = zipCodeByDate.get("2020/11/05")
+                //
+                //     data = zipCountArray
+                //
+                // }
+            }, []);
+
+
+
+
+
+            // data.forEach((singleDayMap, dateString) => {
+            //     let tempMap = new Map()
+            //     if(dateString >= startDate && dateString <= endDate){
+            //
+            //     }
+            //     zipCodeMap.set(dateString)
+            // })
+
+            const rounded = num => {
+                if (num > 1000000000) {
+                    return Math.round(num / 100000000) / 10 + "Bn";
+                } else if (num > 1000000) {
+                    return Math.round(num / 100000) / 10 + "M";
+                } else {
+                    return Math.round(num / 100) / 10 + "K";
+                }
+            };
+
+
+
+            return (
+                <>
+                    <ComposableMap data-tip="" projection="geoAlbersUsa" projectionConfig={{ scale: 100000 }}
+                                   width={980}
+                                   height={551}
+                                   style={{
+                                       width: "100%",
+                                       height: "auto",
+                                   }}>
+                        <ZoomableGroup center={[ -117.192289, 32.769148  ]} /*disablePanning*/>
+
+                            <Geographies geography="./zipcodes.geojson">
+                                {({ geographies }) =>
+                                    geographies.map(geo => {
+
+                                        let geoZip = geo.properties.zip
+
+
+                                        let cur = null
+                                        if(zipCodeMap.has(geoZip)){
+                                            let caseCount = zipCodeMap.get(geoZip)
+                                            let numDays = dateRangeArray.length
+
+
+                                            let caseCountPerCapita100k = ((caseCount / this.props.stateObj.associatedPopulationsObj[geoZip.toString()]) * 100000) / numDays
+
+                                            cur = {id: geoZip, caseCount: caseCountPerCapita100k}
+                                        }
+
+
+                                        if(cur) {
+                                            return (
+                                                <Geography
+                                                    key={geo.rsmKey}
+                                                    geography={geo}
+                                                    // fill={colorScale(cur ? cur.caseCount : "#EEE")}
+
+                                                    onMouseEnter={() => {
+                                                        const { NAME, POP_EST } = geo.properties;
+                                                        setTooltipContent('hi')
+                                                        // setTooltipContent(`${NAME} — ${rounded(POP_EST)}`);
+                                                    }}
+                                                    onMouseLeave={() => {
+                                                        setTooltipContent("");
+                                                    }}
+
+                                                />
+                                            );
+                                        }
+                                    })
+                                }
+                            </Geographies>
+                        </ZoomableGroup>
+                    </ComposableMap>
+                </>
+            );
+        };
+
+
+
+
+
         return(
             <>
 
@@ -545,6 +789,8 @@ class ResultsComponent extends Component {
                 <br />
 
                 <div className="contributionChart">
+                    <MapChart setTooltipContent={this.setTooltipContent} />
+                    <ReactTooltip>{this.state.content}</ReactTooltip>
                     <CanvasJSChart options={options_weekly} />
                     <br />
                     <CanvasJSChart options={options_average} />
@@ -553,160 +799,6 @@ class ResultsComponent extends Component {
                 </div>
 
                 <br /> <br /> <br />
-
-                {/*<h3>Cases per week</h3>*/}
-
-
-
-                {/*<div className="resultsByZip-wrapper">*/}
-
-
-
-                    {/*<Table  striped bordered hover>*/}
-                    {/*    <thead>*/}
-
-                    {/*    <tr>*/}
-                    {/*        <td>*/}
-                    {/*            Date*/}
-                    {/*        </td>*/}
-                    {/*        <td>*/}
-                    {/*            Cases*/}
-                    {/*        </td>*/}
-                    {/*        <td>*/}
-                    {/*            Rate per 100k*/}
-                    {/*        </td></tr>*/}
-                    {/*    </thead>*/}
-                    {/*    <tbody>*/}
-                    {/*    {*/}
-
-                    {/*        Object.keys(objectWeekly).map((dateString) => {*/}
-                    {/*            let caseCount = Math.round(objectWeekly[dateString])*/}
-
-
-                    {/*            //let caseRate = Math.round(this.props.stateObj.finalPerCapitaByDateAverage.get(dateString))*/}
-
-                    {/*            return(*/}
-
-                    {/*                <>*/}
-                    {/*                    <tr>*/}
-                    {/*                        <td>{dateString}</td>*/}
-                    {/*                        <td>{caseCount}</td>*/}
-                    {/*                        <td>{(caseCount / populationTotal * 100000).toFixed(1)}</td>*/}
-
-                    {/*                    </tr>*/}
-
-                    {/*                </>*/}
-
-                    {/*            )*/}
-                    {/*        })*/}
-                    {/*    }*/}
-                    {/*    </tbody>*/}
-
-                    {/*</Table>*/}
-
-
-
-
-                {/*</div>*/}
-
-
-
-
-
-
-
-
-                {/*<br />*/}
-                {/*<h3>Cases per day (5 day average)</h3>*/}
-
-
-                {/*<div className="resultsByZip-wrapper">*/}
-                {/*    <Table  striped bordered hover>*/}
-                {/*        <thead>*/}
-
-                {/*        <tr>*/}
-                {/*            <td>*/}
-                {/*                Date*/}
-                {/*            </td>*/}
-                {/*            <td>*/}
-                {/*                Cases*/}
-                {/*            </td>*/}
-                {/*            <td>*/}
-                {/*                Rate per 100k*/}
-                {/*            </td>*/}
-                {/*        </tr>*/}
-                {/*        </thead>*/}
-                {/*        <tbody>*/}
-                {/*        {*/}
-
-                {/*            Object.keys(objectAverage).map((dateString) => {*/}
-                {/*                let caseCount = Math.round(objectAverage[dateString])*/}
-
-
-                {/*                return(*/}
-                {/*                    <>*/}
-
-                {/*                        <tr>*/}
-                {/*                            <td>{dateString}</td>*/}
-                {/*                            <td>{caseCount}</td>*/}
-                {/*                            <td>{(caseCount / populationTotal * 100000).toFixed(1)}</td>*/}
-
-                {/*                        </tr>*/}
-
-                {/*                    </>*/}
-
-                {/*                )*/}
-                {/*            })*/}
-                {/*        }*/}
-                {/*        </tbody>*/}
-
-                {/*    </Table>*/}
-
-                {/*</div>*/}
-                {/*<br /><br />*/}
-                {/*<h3>Cases per day</h3>*/}
-
-                {/*<div className="resultsByZip-wrapper">*/}
-                {/*    <Table  striped bordered hover>*/}
-                {/*        <thead>*/}
-
-                {/*        <tr>*/}
-                {/*            <td>*/}
-                {/*                Date*/}
-                {/*            </td>*/}
-                {/*            <td>*/}
-                {/*                Cases*/}
-                {/*            </td>*/}
-                {/*            <td>*/}
-                {/*                Rate per 100k*/}
-                {/*            </td>*/}
-                {/*        </tr>*/}
-                {/*        </thead>*/}
-                {/*        <tbody>*/}
-                {/*        {*/}
-                {/*            Object.keys(object).map((dateString) => {*/}
-                {/*                let caseCount = object[dateString]*/}
-
-                {/*                return(*/}
-                {/*                    <>*/}
-
-                {/*                        <tr>*/}
-                {/*                            <td>{dateString}</td>*/}
-                {/*                            <td>{caseCount}</td>*/}
-                {/*                            <td>{(caseCount / populationTotal * 100000).toFixed(1)}</td>*/}
-
-                {/*                        </tr>*/}
-
-                {/*                    </>*/}
-
-                {/*                )*/}
-                {/*            })*/}
-                {/*        }*/}
-                {/*        </tbody>*/}
-
-                {/*    </Table>*/}
-
-                {/*</div>*/}
 
 
 

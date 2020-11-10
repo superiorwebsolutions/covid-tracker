@@ -5,7 +5,7 @@ class ServiceApi{
 
     getAllResults(){
 
-        return axios.get("./dataset.json");
+        return axios.get(API_URL);
     }
 
 }

@@ -38,7 +38,6 @@ class MainApp extends Component{
                 92124,
                 92120,
                 92109,
-                92110,
                 92108,
                 92107,
                 92110,
@@ -47,7 +46,6 @@ class MainApp extends Component{
                 92115,
                 92106,
                 92140,
-                92103,
                 92104,
                 92105,
                 92101,
@@ -56,6 +54,31 @@ class MainApp extends Component{
                 92136
 
             ],
+            associatedPopulationsObj: {
+                92037: 41031,
+                92121: 4529,
+                92122: 47550,
+                92117: 55256,
+                92111: 46475,
+                92123: 26823,
+                92124: 31814,
+                92120: 31335,
+                92109: 47844,
+                92108: 24555,
+                92107: 28052,
+                92110: 26381,
+                92103: 32946,
+                92116: 33114,
+                92115: 58276,
+                92106: 18424,
+                92140: 3435,
+                92104: 46945,
+                92105: 73428,
+                92101: 38725,
+                92102: 44545,
+                92113: 53688,
+                92136: 10699,
+    },
             associatedPopulations: [
                 46781,
                 4179,
@@ -128,6 +151,8 @@ class MainApp extends Component{
                     <FilterComponent stateObj={this.state} handleStateObj={this.handleStateObj}></FilterComponent>
 
                     <div className="clearfix"></div>
+
+
 
                     <ResultsComponent stateObj={this.state} updateState={this.updateState}></ResultsComponent>
 
