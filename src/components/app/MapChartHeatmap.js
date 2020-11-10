@@ -25,7 +25,7 @@ const rounded = num => {
 let dateFormat = require('dateformat');
 
 const colorScale = scaleQuantize()
-    .domain([0, 20])
+    .domain([2, 20])
     .range([
         "#ffedea",
         "#ffcec5",
@@ -72,6 +72,10 @@ class MapChartHeatmap extends Component {
 
 
     handleClick(zipCode){
+        if(this.props.singleZip)
+            this.props.updateSingleZip(null)
+        else
+            this.props.updateSingleZip(zipCode)
 
     };
 
@@ -109,12 +113,12 @@ class MapChartHeatmap extends Component {
                                     geographies.map((geo) => {
 
                                         let geoZip = geo.properties.zip
-                                        // if(this.props.associatedPopulationsObj[geoZip]) {
+                                        if(this.props.associatedPopulationsObj[geoZip]) {
 
 
                                             let cur = null
 
-                                            if (this.props.zipCodeMap.has(geoZip)) {
+                                            // if (this.props.zipCodeMap.has(geoZip)) {
                                                 let caseCount = this.props.zipCodeMap.get(geoZip)
                                                 let numDays = this.props.dateRangeArray.length
                                                 count += caseCount
@@ -130,7 +134,7 @@ class MapChartHeatmap extends Component {
                                                     cases: caseCount
                                                 }
 
-                                             }
+                                             // }
 
 
                                             if (cur) {
@@ -144,7 +148,8 @@ class MapChartHeatmap extends Component {
 
                                                             onClick={() => {
                                                                 // this.handleClick(cur.id)
-                                                                this.props.setTooltipContent("" + cur.cases + " cases per 100k")
+                                                                this.handleClick(cur.id)
+                                                                this.props.setTooltipContent(cur.cases + " cases (" + cur.caseCount + " per 100k)")
                                                             }}
 
                                                             // onMouseEnter={() => {
@@ -159,7 +164,7 @@ class MapChartHeatmap extends Component {
                                                     </>
                                                 );
                                             }
-                                        // }
+                                        }
                                     })
                             }
 

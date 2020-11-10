@@ -114,7 +114,8 @@ class MainApp extends Component{
                 10699
             ],
             filter: false,
-            loadMore: false
+            loadMore: false,
+            singleZip: null
 
 
         }

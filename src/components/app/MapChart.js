@@ -54,15 +54,6 @@ class MapChart extends Component {
             dateRangeArray: new Map()
         }
 
-        // this.props.updateZipCodesAllowed([])
-
-        // const [activeZip, setCount] = useState("");
-        // let [zipCodeMap, setData] = useState(new Map());
-        // let [finalZipCountByDate, setZipCountData] = useState(new Map());
-        // let [dateRangeArray, setDateRange] = useState([]);
-
-
-        // setData(props.zipCodeMap)
     }
 
 

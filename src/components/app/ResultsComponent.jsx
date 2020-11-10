@@ -28,18 +28,17 @@ class ResultsComponent extends Component {
 
         this.state = {
             allResults: new Map(),
-            objCountByDate: new Map(),
-            zipCodeByDate: new Map(),
-            zipCodeMap: new Map(),
             dateRangeArray: [],
             finalZipCountByDate: new Map(),
             optionsWeekly: {},
             optionsDaily: {},
+            optionsAverage: {},
             content: ""
         }
         this.refreshResults = this.refreshResults.bind(this)
         this.setContent = this.setContent.bind(this)
         this.updateZipCodesAllowed = this.updateZipCodesAllowed.bind(this)
+        this.updateSingleZip = this.updateSingleZip.bind(this)
 
         ServiceApi.getAllResults()
             .then(
@@ -119,7 +118,10 @@ class ResultsComponent extends Component {
 
     updateZipCodesAllowed(zipCodesAllowed){
         this.props.updateState({zipCodesAllowed: zipCodesAllowed})
-        console.log(this.props.zipCodesAllowed)
+    }
+
+    updateSingleZip(zipCode){
+        this.props.updateState({singleZip: zipCode})
     }
 
 
@@ -138,6 +140,10 @@ class ResultsComponent extends Component {
 
             let zipCode = data2.ziptext
 
+            if(this.props.stateObj.singleZip && zipCode != this.props.stateObj.singleZip){
+                continue
+            }
+
             let caseCount = data2.case_count
 
             let caseCountString = caseCount.toString()
@@ -148,7 +154,7 @@ class ResultsComponent extends Component {
             // let date = new Date(updateDate.slice(0, updateDate.indexOf(' ')))
             // let dateString = date.getFullYear() + "/" + date.getMonth() + "/" + date.getDate()
 
-            if (zipCodesAllowed.includes(parseInt(zipCode))) {
+            // if (zipCodesAllowed.includes(parseInt(zipCode))) {
                 let currentDate
                 if (this.props.stateObj.loadMore == true) {
                     currentDate = new Date("June 06, 2020")
@@ -179,7 +185,7 @@ class ResultsComponent extends Component {
 
                     zipCodeByDate.set(dateString, newMap)
                 }
-            }
+            // }
         }
 
         objCountByDate = new Map([...objCountByDate.entries()].sort())
@@ -256,7 +262,11 @@ class ResultsComponent extends Component {
             }
             average /= queue.length
 
+
             finalCountByDateAverage.set(dateString, average)
+
+
+
 
         }
 
@@ -276,7 +286,6 @@ class ResultsComponent extends Component {
 
             populationTotal += this.props.stateObj.associatedPopulationsObj[zipCode]
         })
-        console.log(populationTotal)
 
         let object = {}
 
@@ -564,7 +573,8 @@ class ResultsComponent extends Component {
             finalZipCountByDate: finalZipCountByDate,
             dateRangeArray: dateRangeArray,
             optionsWeekly: options_weekly,
-            optionsDaily: options_daily
+            optionsDaily: options_daily,
+            optionsAverage: options_average
 
         })
 
@@ -573,11 +583,11 @@ class ResultsComponent extends Component {
 
     
     componentDidMount(){
-        this.refreshResults()
+        // this.refreshResults()
     }
     componentDidUpdate(prevProps, prevState){
 
-        if(prevProps.stateObj.filter != this.props.stateObj.filter || (prevProps.stateObj.loadMore != this.props.stateObj.loadMore))
+        if(prevProps.stateObj.singleZip != this.props.stateObj.singleZip || (prevProps.stateObj.loadMore != this.props.stateObj.loadMore))
             this.refreshResults()
 
     }
@@ -598,35 +608,39 @@ class ResultsComponent extends Component {
 
                 <br />
                 <h3>Current risk per capita (past 7 days)</h3>
-                <MapChartHeatmap associatedPopulationsObj={this.props.stateObj.associatedPopulationsObj} dateRangeArray={this.state.dateRangeArray} zipCodeMap={this.state.zipCodeMap}
+                <MapChartHeatmap singleZip={this.props.stateObj.singleZip} associatedPopulationsObj={this.props.stateObj.associatedPopulationsObj} dateRangeArray={this.state.dateRangeArray} zipCodeMap={this.state.zipCodeMap}
                                  finalZipCountByDate={this.state.finalZipCountByDate} zipCodesAllowed={this.props.zipCodesAllowed} setTooltipContent={this.setContent}
+                                 updateSingleZip={this.updateSingleZip}
+
                                  updateZipCodesAllowed={(zipCodesAllowed) => {
                                      this.updateZipCodesAllowed(zipCodesAllowed)
-                                     this.refreshResults()
-                                 }
-                                 }
+
+                                 }}
+
 
 
                 />
 
-                <h3>Show/hide specific regions</h3>
-                <MapChart associatedPopulationsObj={this.props.stateObj.associatedPopulationsObj} dateRangeArray={this.state.dateRangeArray} zipCodeMap={this.state.zipCodeMap}
-                          finalZipCountByDate={this.state.finalZipCountByDate} zipCodesAllowed={this.props.zipCodesAllowed} setTooltipContent={this.setContent}
-                          updateZipCodesAllowed={(zipCodesAllowed) => {
-                              this.updateZipCodesAllowed(zipCodesAllowed)
-                              this.refreshResults()
-                          }
-                          }
-                              />
+
+                {/*<h3>Show/hide specific regions</h3>*/}
+                {/*<MapChart associatedPopulationsObj={this.props.stateObj.associatedPopulationsObj} dateRangeArray={this.state.dateRangeArray} zipCodeMap={this.state.zipCodeMap}*/}
+                {/*          finalZipCountByDate={this.state.finalZipCountByDate} zipCodesAllowed={this.props.zipCodesAllowed} setTooltipContent={this.setContent}*/}
+                {/*          updateZipCodesAllowed={(zipCodesAllowed) => {*/}
+                {/*              this.updateZipCodesAllowed(zipCodesAllowed)*/}
+                {/*              this.refreshResults()*/}
+                {/*          }*/}
+                {/*          }*/}
+                {/*              />*/}
+
 
 
                 <ReactTooltip>{this.state.content}</ReactTooltip>
 
                 <div className="contributionChart">
                     <CanvasJSChart options={this.state.optionsWeekly} />
-                    {/*<br />*/}
-                    {/*<CanvasJSChart options={options_average} />*/}
-                    {/*<br />*/}
+                    <br />
+                    <CanvasJSChart options={this.state.optionsAverage} />
+                    <br />
                     <CanvasJSChart options={this.state.optionsDaily} />
                 </div>
 
