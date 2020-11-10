@@ -1,14 +1,12 @@
-import React, {Component} from "react";
+import React, {Component, useState} from "react";
 import {Button} from "react-bootstrap";
 
 
 
-
+import ReactTooltip from "react-tooltip";
 
 
 class FilterComponent extends Component{
-
-
 
     constructor(props) {
         super(props);
@@ -16,11 +14,17 @@ class FilterComponent extends Component{
         this.handleChange = this.handleChange.bind(this)
         this.loadMore = this.loadMore.bind(this)
         this.resetChart = this.resetChart.bind(this)
+        this.setContent = this.setContent.bind(this)
 
         this.state = {
             showPbButton: true,
-            showLoadButton: true
+            showLoadButton: true,
+            content: ""
         }
+    }
+
+    setContent(obj){
+        this.setState({content: obj})
     }
 
     handleChange(booleanVal){
@@ -50,6 +54,7 @@ class FilterComponent extends Component{
 
         return(
             <>
+
 
                 <div className="topSection">
                     { this.state.showPbButton ? <Button variant="secondary" className="show-pb" onClick={() => {this.handleChange(true)}}>Show PB only</Button> : null }

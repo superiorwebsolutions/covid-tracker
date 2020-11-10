@@ -6,10 +6,13 @@ import './assets/style.css'
 
 
 import React from "react";
-import FilterComponent from "./components/app/FilterComponent";
 import MainApp from "./components/app/MainApp";
 
+
+
+
 function App() {
+
   return (
       <>
 

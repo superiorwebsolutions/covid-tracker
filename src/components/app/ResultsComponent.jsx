@@ -14,7 +14,7 @@ import ReactTooltip from 'react-tooltip'
 import { scaleQuantize } from "d3-scale";
 import { csv } from "d3-fetch";
 
-
+import MapChart from "./MapChart";
 
 let dateFormat = require('dateformat');
 
@@ -33,9 +33,7 @@ class ResultsComponent extends Component {
             content: ""
         }
         this.refreshResults = this.refreshResults.bind(this)
-        this.setTooltipContent = this.setTooltipContent.bind(this)
-
-
+        this.setContent = this.setContent.bind(this)
 
         ServiceApi.getAllResults()
             .then(
@@ -204,10 +202,8 @@ class ResultsComponent extends Component {
 
     }
 
-    setTooltipContent(obj){
-        this.setState({
-            content: obj
-        })
+    setContent(obj){
+        this.setState({content: obj})
     }
 
 
@@ -627,8 +623,53 @@ class ResultsComponent extends Component {
                 "#782618"
             ]);
 
+        let startDate = "2020/10/01"
+        let endDate = "2020/11/09"
+
+        let zipCodeMap = new Map()
+
+        let getDaysArray = function(start, end) {
+            let arr
+            let dt
+            for(arr=[], dt=new Date(start); dt<=end; dt.setDate(dt.getDate()+1)){
+                arr.push(new Date(dt));
+            }
+            return arr;
+        };
+
+        let dateRangeArray = getDaysArray(new Date(startDate), new Date(endDate));
+
+        dateRangeArray.forEach((date) => {
+            let dateFormatted = dateFormat(date, "yyyy/mm/dd")
 
 
+
+
+            if(finalZipCountByDate.has(dateFormatted)) {
+                let singleDayMap = finalZipCountByDate.get(dateFormatted)
+
+                singleDayMap.forEach((caseCount, zipCode) => {
+
+                    if (zipCodeMap.has(zipCode)) {
+                        let prevSingleZipCount = zipCodeMap.get(zipCode)
+
+                        zipCodeMap.set(zipCode, parseInt(caseCount) + parseInt(prevSingleZipCount))
+                    } else {
+                        zipCodeMap.set(zipCode, parseInt(caseCount))
+                    }
+
+
+                })
+            }
+
+
+
+        })
+
+        this.setState({zipCodeMap: zipCodeMap})
+
+
+/*
         const MapChart = ({ setTooltipContent }) => {
 
             let [dateRangeArray, setDateRange] = useState([]);
@@ -729,7 +770,7 @@ class ResultsComponent extends Component {
                                        width: "100%",
                                        height: "auto",
                                    }}>
-                        <ZoomableGroup center={[ -117.192289, 32.769148  ]} /*disablePanning*/>
+                        <ZoomableGroup center={[ -117.192289, 32.769148  ]} disablePanning>
 
                             <Geographies geography="./zipcodes.geojson">
                                 {({ geographies }) =>
@@ -778,7 +819,7 @@ class ResultsComponent extends Component {
             );
         };
 
-
+    */
 
 
 
@@ -788,9 +829,12 @@ class ResultsComponent extends Component {
 
                 <br />
 
+                <MapChart associatedPopulationsObj={this.props.stateObj.associatedPopulationsObj} finalZipCountByDate={finalZipCountByDate} setTooltipContent={this.setContent} />
+                <ReactTooltip>{this.state.content}</ReactTooltip>
+
                 <div className="contributionChart">
-                    <MapChart setTooltipContent={this.setTooltipContent} />
-                    <ReactTooltip>{this.state.content}</ReactTooltip>
+                    {/*<MapChart setTooltipContent={this.setTooltipContent} />*/}
+                    {/*<ReactTooltip>{this.state.content}</ReactTooltip>*/}
                     <CanvasJSChart options={options_weekly} />
                     <br />
                     <CanvasJSChart options={options_average} />
