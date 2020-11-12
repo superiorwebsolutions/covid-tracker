@@ -27,7 +27,7 @@ class MainApp extends Component{
             finalPerCapitaByDate: new Map(),
             finalPerCapitaByDateAverage: new Map(),
             finalCountByWeekAverage: new Map(),
-            startDate: new Date(),
+            startDate: new Date("August 01, 2020"),
             // Not including anything north of sorrento valley
             zipCodesAllowed: [
                 92037,
@@ -65,7 +65,7 @@ class MainApp extends Component{
                 92124: 31814,
                 92120: 31335,
                 92109: 47844,
-                92108: 24555,
+                92108: 18858,
                 92107: 28052,
                 92110: 26381,
                 92103: 32946,
@@ -147,7 +147,6 @@ class MainApp extends Component{
 
 
     render(){
-        console.log(this.state.startDate)
 
         return(
             <>
@@ -161,7 +160,7 @@ class MainApp extends Component{
 
 
 
-                    <ResultsComponent stateObj={this.state} zipCodesAllowed={this.state.zipCodesAllowed} updateState={this.updateState}></ResultsComponent>
+                    <ResultsComponent singleZip={this.state.singleZip} stateObj={this.state} zipCodesAllowed={this.state.zipCodesAllowed} updateState={this.updateState}></ResultsComponent>
 
                     <h5>All covid results within this region</h5>
                     <br />

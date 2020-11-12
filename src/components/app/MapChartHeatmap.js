@@ -75,6 +75,8 @@ class MapChartHeatmap extends Component {
         else
             this.props.updateSingleZip(zipCode)
 
+
+
     };
 
 
@@ -92,7 +94,7 @@ class MapChartHeatmap extends Component {
         let count = 0
         return (
             <>
-                <ComposableMap data-tip="" projection="geoAlbersUsa" projectionConfig={{scale: 80000}}
+                <ComposableMap data-tip="" projection="geoAlbersUsa" projectionConfig={{scale: 100000}}
                                width={980}
                                height={551}
                                style={{
@@ -116,7 +118,7 @@ class MapChartHeatmap extends Component {
 
                                             let cur = null
 
-                                            // if (this.props.zipCodeMap.has(geoZip)) {
+                                            if (this.props.zipCodeMap.has(geoZip)) {
                                                 let caseCount = this.props.zipCodeMap.get(geoZip)
                                                 let numDays = this.props.dateRangeArray.length
                                                 count += caseCount
@@ -132,11 +134,11 @@ class MapChartHeatmap extends Component {
                                                     cases: caseCount
                                                 }
 
-                                             // }
 
 
-                                            if (cur) {
-                                                // console.log(count)
+
+
+
                                                 return (
                                                     <>
                                                         <Geography
@@ -147,7 +149,8 @@ class MapChartHeatmap extends Component {
                                                             onClick={() => {
                                                                 // this.handleClick(cur.id)
                                                                 this.handleClick(cur.id)
-                                                                this.props.setTooltipContent(cur.cases + " cases (" + cur.caseCount + " per 100k)")
+                                                                this.props.setTooltipContent(cur.cases + " cases (past " + numDays + " days)")
+                                                                // this.props.setTooltipContent(cur.cases + " cases (" + cur.caseCount + " per 100k)")
                                                             }}
 
                                                             // onMouseEnter={() => {

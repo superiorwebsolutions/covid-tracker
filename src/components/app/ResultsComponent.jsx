@@ -33,6 +33,7 @@ class ResultsComponent extends Component {
             optionsWeekly: {},
             optionsDaily: {},
             optionsAverage: {},
+            zipCodeMap: new Map(),
             content: ""
         }
         this.refreshResults = this.refreshResults.bind(this)
@@ -109,9 +110,6 @@ class ResultsComponent extends Component {
 
                     this.refreshResults()
 
-
-
-
                 }
             )
     }
@@ -122,6 +120,7 @@ class ResultsComponent extends Component {
 
     updateSingleZip(zipCode){
         this.props.updateState({singleZip: zipCode})
+
     }
 
 
@@ -233,7 +232,7 @@ class ResultsComponent extends Component {
 
 
         }
-        // console.log(finalZipCountByDate)
+
         // Delete first item of finalCountByDate
         finalCountByDate.delete(finalCountByDate.keys().next().value)
         finalZipCountByDate.delete(finalCountByDate.keys().next().value)
@@ -278,7 +277,7 @@ class ResultsComponent extends Component {
 
 
         let startDate = new Date()
-        startDate.setDate(startDate.getDate() - 7)
+        startDate.setDate(startDate.getDate() - 9)
         startDate = dateFormat(startDate, "yyyy/mm/dd")
         let endDate = new Date()
         endDate.setDate(endDate.getDate() - 2)
@@ -504,7 +503,7 @@ class ResultsComponent extends Component {
         const options_average = {
             animationEnabled: true,
             title:{
-                text: "Cases per day (exact)",
+                text: "Cases per day (average)",
                 fontSize: 22
             },
             axisY2: {
@@ -524,8 +523,8 @@ class ResultsComponent extends Component {
                 yValueFormatString: "#",
                 xValueFormatString: "MMM D, YYYY (DDDD)",
                 type: "spline",
-                // dataPoints: dataPointsArrayAverage
-                dataPoints: dataPointsArray
+                dataPoints: dataPointsArrayAverage
+                // dataPoints: dataPointsArray
             }]
         }
 
@@ -596,7 +595,6 @@ class ResultsComponent extends Component {
 
         })
 
-        console.log(finalZipCountByDate)
 
         this.setState({
             zipCodeMap: zipCodeMap,
@@ -613,7 +611,7 @@ class ResultsComponent extends Component {
 
 
     componentDidMount(){
-        // this.refreshResults()
+        this.refreshResults()
     }
     componentDidUpdate(prevProps, prevState){
         if(prevProps.stateObj != this.props.stateObj) {

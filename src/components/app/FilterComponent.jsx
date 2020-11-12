@@ -39,11 +39,10 @@ class FilterComponent extends Component{
     }
     setStartDate(daysAgo){
         let startDate = new Date()
-        startDate.setDate(startDate.getDate() - daysAgo)
+        startDate.setDate(startDate.getDate() - daysAgo - 2)
         startDate = dateFormat(startDate, "yyyy/mm/dd")
         // this.setState({: false})
         this.props.handleStateObj({startDate: startDate})
-        console.log(this.props.startDate)
 
     }
 
