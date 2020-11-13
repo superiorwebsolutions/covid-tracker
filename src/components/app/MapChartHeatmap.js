@@ -3,7 +3,7 @@ import {
     ZoomableGroup,
     ComposableMap,
     Geographies,
-    Geography
+    Geography, Annotation
 } from "react-simple-maps";
 import ReactTooltip from "react-tooltip";
 import {scaleQuantize} from "d3-scale";
@@ -49,7 +49,8 @@ class MapChartHeatmap extends Component {
             // activeZipCodes: [],
             // zipCodeMap: new Map(),
             finalZipCountByDate: new Map(),
-            dateRangeArray: new Map()
+            dateRangeArray: new Map(),
+            content: ""
         }
 
         // this.props.updateZipCodesAllowed([])
@@ -66,16 +67,33 @@ class MapChartHeatmap extends Component {
 
 
 
-
+    setContent(obj){
+        this.setState({content: obj})
+    }
 
 
     handleClick(zipCode){
-        if(this.props.singleZip)
-            this.props.updateSingleZip(null)
-        else
-            this.props.updateSingleZip(zipCode)
+        let zipCodeArray = this.props.singleZip
+        if(zipCodeArray.includes(zipCode) === true) {
+            for (let i = 0; i < zipCodeArray.length; i++) {
+                if (zipCodeArray[i] == zipCode) {
+                    zipCodeArray.splice(i, 1)
+                    break
+
+                }
+            }
+        }
+        else{
+            zipCodeArray.push(zipCode)
+        }
 
 
+        // if(this.props.singleZip.length != 0)
+        //     this.props.updateSingleZip([])
+        // else{
+        //
+        // }
+            this.props.updateSingleZip(zipCodeArray)
 
     };
 
@@ -90,10 +108,27 @@ class MapChartHeatmap extends Component {
     }
 
     render() {
+        // Do not render heatmap until zipCodeMap data is populated
+        if(this.props.zipCodeMap.size == 0)
+            return (<></>)
+
+        console.log("render MapChartHeatmap")
+
         // console.log(this.props.zipCodeMap)
         let count = 0
+        let associatedPopulationsObj
+        if(this.props.stateObj.chulaVistaOnly)
+            associatedPopulationsObj = this.props.chulaVistaPopulations
+
+        else
+            associatedPopulationsObj = this.props.associatedPopulationsObj
+
+        let positionCount = -60
+
         return (
             <>
+                <ReactTooltip>{this.state.content}</ReactTooltip>
+
                 <ComposableMap data-tip="" projection="geoAlbersUsa" projectionConfig={{scale: 100000}}
                                width={980}
                                height={551}
@@ -112,59 +147,120 @@ class MapChartHeatmap extends Component {
 
                                     geographies.map((geo) => {
 
+
+
                                         let geoZip = geo.properties.zip
-                                        if(this.props.associatedPopulationsObj[geoZip]) {
+                                        // if((associatedPopulationsObj[geoZip] && this.props.stateObj.singleZip.length === 0) || this.props.stateObj.singleZip.includes(geoZip) == true) {
+                                        if(associatedPopulationsObj[geoZip]) {
 
+                                            positionCount += 1
 
-                                            let cur = null
+                                            let locationObj = null
+                                            let caseCount
+                                            let caseCountPerCapita100k
 
-                                            if (this.props.zipCodeMap.has(geoZip)) {
-                                                let caseCount = this.props.zipCodeMap.get(geoZip)
-                                                let numDays = this.props.dateRangeArray.length
-                                                count += caseCount
+                                            let coords = geo.geometry.coordinates
 
-                                                // TODO:  Add this functionality
-                                                // let cityName = geo.properties.name
+                                            let numDays = this.props.dateRangeArray.length
+                                            let zipCodeName = this.props.stateObj.zipCodeNames[geoZip]
 
-                                                let caseCountPerCapita100k = ((caseCount / this.props.associatedPopulationsObj[geoZip]) * 100000) / numDays
+                                            if (zipCodeName == "La Jolla"){
+                                                console.log(geo)
+                                        }
 
-                                                cur = {
-                                                    id: geoZip,
-                                                    caseCount: Math.round(caseCountPerCapita100k),
-                                                    cases: caseCount
-                                                }
-
-
-
+                                            caseCount = this.props.zipCodeMap.get(geoZip)
+                                            caseCountPerCapita100k = ((caseCount / associatedPopulationsObj[geoZip]) * 100000) / numDays
 
 
 
-                                                return (
-                                                    <>
-                                                        <Geography
-                                                            key={geo.rsmKey}
-                                                            geography={geo}
-                                                            fill={colorScale(cur ? cur.caseCount : "#EEE")}
-
-                                                            onClick={() => {
-                                                                // this.handleClick(cur.id)
-                                                                this.handleClick(cur.id)
-                                                                this.props.setTooltipContent(cur.cases + " cases (past " + numDays + " days)")
-                                                                // this.props.setTooltipContent(cur.cases + " cases (" + cur.caseCount + " per 100k)")
-                                                            }}
-
-                                                            // onMouseEnter={() => {
-                                                            //     this.props.setTooltipContent("" + cur.cases + " cases per 100k")
-                                                            // }}
-                                                            // onMouseLeave={() => {
-                                                            //     this.props.setTooltipContent("");
-                                                            // }}
-
-
-                                                        />
-                                                    </>
-                                                );
+                                            let tooltipText
+                                            if(caseCount != null){
+                                                tooltipText = zipCodeName + " (" + caseCount + " cases)"
                                             }
+                                            else{
+                                                tooltipText = zipCodeName
+                                            }
+                                            let halfwayInt = Math.round((coords[0][0].length - 1) / 2)
+                                            let latStart = coords[0][0][0][0]
+                                            let latEnd = coords[0][0][halfwayInt][0]
+
+                                            let longStart = coords[0][0][0][1]
+                                            let longEnd = coords[0][0][halfwayInt][1]
+
+                                            locationObj = {
+                                                id: geoZip,
+                                                caseCount: Math.round(caseCountPerCapita100k),
+                                                cases: caseCount,
+                                                zipCodeName: zipCodeName,
+                                                tooltip: tooltipText,
+                                                centerCoordinate: [(latStart + latEnd) / 2, (longStart + longEnd) / 2]
+                                            }
+
+
+
+
+
+                                            let cellStyle = { fill: colorScale(locationObj.caseCount), stroke: "#333", strokeWidth: 1, outline: 'none' }
+
+                                            let cellStyleHover = { fill: "#1C446E", stroke: "#1C446E", outline: 'none' }
+
+
+                                            // TODO:  do not refresh this render when settooltipcontent is called
+                                            return (
+                                                <>
+                                                    <Geography
+                                                        key={locationObj.id}
+                                                        geography={geo}
+                                                          // fill={colorScale(locationObj ? locationObj.caseCount : "white")}
+                                                        fill="black"
+                                                        stroke="white"
+                                                        onClick={() => {
+                                                            if(this.props.stateObj.chulaVistaOnly != true){
+                                                                this.props.updateParentState({clearSelection: false})}
+                                                                this.handleClick(locationObj.id)
+                                                            }
+
+
+                                                        }
+
+                                                        onMouseEnter={() => {
+                                                            this.setContent(locationObj.tooltip)
+                                                        }}
+                                                        onMouseLeave={() => {
+                                                            this.setContent("")
+                                                        }}
+
+                                                        style={{
+                                                            default: cellStyle,
+                                                            hover: cellStyleHover,
+                                                             // pressed: cellStyleHover
+                                                        }}
+
+
+                                                    />
+
+                                                    <Annotation
+                                                        subject={locationObj.centerCoordinate}
+                                                        dx={0}
+                                                        dy={0}
+                                                        connectorProps={{
+                                                            stroke: "black",
+                                                            strokeWidth: 2,
+                                                            strokeLinecap: "round"
+                                                        }}
+                                                    >
+                                                        <text x="0" textAnchor="end" alignmentBaseline="middle" fill="black">
+                                                            {locationObj.zipCodeName}
+                                                        </text>
+                                                    </Annotation>
+                                                </>
+                                            );
+
+
+
+
+
+
                                         }
                                     })
                             }
@@ -203,8 +299,11 @@ class MapChartHeatmap extends Component {
                             {/*}*/}
 
                         </Geographies>
+
+
                     </ZoomableGroup>
                 </ComposableMap>
+
             </>
         );
 

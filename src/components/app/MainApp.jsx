@@ -30,29 +30,30 @@ class MainApp extends Component{
             startDate: new Date("August 01, 2020"),
             // Not including anything north of sorrento valley
             zipCodesAllowed: [
-                92037,
-                92121,
-                92122,
-                92117,
-                92111,
-                92123,
-                92124,
-                92120,
-                92109,
-                92108,
-                92107,
-                92110,
-                92103,
-                92116,
-                92115,
-                92106,
-                92140,
-                92104,
-                92105,
-                92101,
-                92102,
-                92113,
-                92136
+                "92037",
+                "92121",
+                "92122",
+                "92117",
+                "92111",
+                "92123",
+                "92124",
+                "92120",
+                "92109",
+                "92108",
+                "92107",
+                "92110",
+                "92103",
+                "92116",
+                "92115",
+                "92182",
+                "92106",
+                "92140",
+                "92104",
+                "92105",
+                "92101",
+                "92102",
+                "92113",
+                "92136",
 
             ],
             associatedPopulationsObj: {
@@ -70,7 +71,8 @@ class MainApp extends Component{
                 92110: 26381,
                 92103: 32946,
                 92116: 33114,
-                92115: 58276,
+                92115: 66669,
+                92182: 606,
                 92106: 18424,
                 92140: 3435,
                 92104: 46945,
@@ -79,44 +81,51 @@ class MainApp extends Component{
                 92102: 44545,
                 92113: 53688,
                 92136: 10699,
-    },
 
-            // TODO:  Add zipCodeObject that stores the names of the cities (use this in Map.Chart.js setTooltipContent
 
-            associatedPopulations: [
-                46781,
-                4179,
-                43728,
-                51332,
-                45096,
-                26823,
-                26823,
-                30443,
-                49744,
-                26317,
-                25341,
-                18858,
-                28651,
-                25341,
-                18858,
-                28651,
-                25341,
-                31066,
-                31680,
-                58560,
-                19330,
-                3435,
-                31066,
-                44414,
-                69813,
-                37095,
-                43267,
-                56066,
-                10699
-            ],
+
+            },
+            zipCodeNames: {
+                92037: "La Jolla",
+                92121: "Sorrento Valley",
+                92122: "UTC",
+                92117: "North Clairemont",
+                92111: "East Clairemont",
+                92123: "Kearny Mesa",
+                92124: "Tierra Santa",
+                92120: "Del Cerro",
+                92109: "Pacific Beach",
+                92108: "Mission Valley",
+                92107: "Ocean Beach",
+                92110: "Bay Park",
+                92103: "Hillcrest",
+                92116: "Normal Heights",
+                92115: "SDSU Area",
+                92182: "SDSU (on-campus)",
+                92106: "Point Loma",
+                92140: "Loma Portal",
+                92104: "North Park",
+                92105: "City Heights",
+                92101: "Downtown / Little Italy",
+                92102: "South Park / Golden Hill",
+                92113: "Logan Heights",
+                92136: "Naval Base",
+
+                91910: "Chula Vista (west)",
+                91911: "Chula Vista (south)",
+                91913: "Chula Vista (otay ranch)"
+
+            },
+            chulaVistaOnly: false,
+            chulaVistaPopulations: {
+                91910: 77369,
+                91911: 85259,
+                91913: 50070,
+            },
             filter: false,
             loadMore: false,
-            singleZip: null
+            clearSelection: false,
+            singleZip: []
 
 
         }
@@ -137,8 +146,9 @@ class MainApp extends Component{
 
     updateState(newState){
         this.setState(newState)
-        // console.log(this.state)
+         // console.log(this.state)
     }
+
 
 
     componentDidMount(){
@@ -147,7 +157,8 @@ class MainApp extends Component{
 
 
     render(){
-
+        console.log("render MainApp")
+        console.log(this.state)
         return(
             <>
 
@@ -158,11 +169,9 @@ class MainApp extends Component{
 
                     <div className="clearfix"></div>
 
-
-
                     <ResultsComponent singleZip={this.state.singleZip} stateObj={this.state} zipCodesAllowed={this.state.zipCodesAllowed} updateState={this.updateState}></ResultsComponent>
 
-                    <h5>All covid results within this region</h5>
+
                     <br />
                     {/*<img className="boundary-img" src={boundary} />*/}
                     <br /><br /><br /><br /><br /><br /><br /><br />

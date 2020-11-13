@@ -45,6 +45,10 @@ class FilterComponent extends Component{
         this.props.handleStateObj({startDate: startDate})
 
     }
+    chulaVistaOnly(){
+        let zipCodeArray = [91910, 91911, 91913]
+        this.handleStateObj({singleZip: zipCodeArray})
+    }
 
 
 

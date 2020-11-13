@@ -2,7 +2,7 @@ import React, { useState, useEffect, Component} from "react";
 
 import ServiceApi from "../../services/ServiceApi";
 
-import {Table} from 'react-bootstrap';
+import {Button, Table} from 'react-bootstrap';
 
 import CanvasJSReact from "./canvasjs.react";
 
@@ -34,12 +34,12 @@ class ResultsComponent extends Component {
             optionsDaily: {},
             optionsAverage: {},
             zipCodeMap: new Map(),
-            content: ""
+
         }
         this.refreshResults = this.refreshResults.bind(this)
-        this.setContent = this.setContent.bind(this)
         this.updateZipCodesAllowed = this.updateZipCodesAllowed.bind(this)
         this.updateSingleZip = this.updateSingleZip.bind(this)
+        this.updateParentState = this.updateParentState.bind(this)
 
         ServiceApi.getAllResults()
             .then(
@@ -81,7 +81,7 @@ class ResultsComponent extends Component {
                         if(updateDate == "2020/05/15 08:00:00+00")
                             break
 
-                        if (zipCodesAllowed.includes(parseInt(zipCode))) {
+                        if (zipCodesAllowed.includes(zipCode)) {
 
                             // Only show results after cutoff date
                             if (caseCount == null || caseCount == 0) {
@@ -118,15 +118,19 @@ class ResultsComponent extends Component {
         this.props.updateState({zipCodesAllowed: zipCodesAllowed})
     }
 
-    updateSingleZip(zipCode){
-        this.props.updateState({singleZip: zipCode})
+    updateSingleZip(zipCodeArray){
+        this.props.updateState({singleZip: zipCodeArray})
 
+    }
+    updateParentState(newState){
+        this.props.updateState(newState)
     }
 
 
 
 
     refreshResults() {
+
 
         let startDate1 = this.props.stateObj.startDate
 
@@ -142,8 +146,9 @@ class ResultsComponent extends Component {
 
             let zipCode = data2.ziptext
 
-            if(this.props.stateObj.singleZip && zipCode != this.props.stateObj.singleZip){
-                continue
+            if(this.props.singleZip.length != 0){
+                if(this.props.singleZip.includes(zipCode) == false)
+                    continue
             }
 
             let caseCount = data2.case_count
@@ -315,12 +320,14 @@ class ResultsComponent extends Component {
 
         let populationTotal = 0
 
-        if(this.props.stateObj.singleZip){
-            populationTotal = this.props.stateObj.associatedPopulationsObj[this.props.stateObj.singleZip]
+        if(this.props.singleZip.length != 0){
+            this.props.singleZip.forEach((zipCode) => {
+                populationTotal += this.props.stateObj.associatedPopulationsObj[zipCode]
+            })
         }
         else {
             this.props.stateObj.zipCodesAllowed.forEach((zipCode) => {
-
+                // If chula vista zip codes should not be included, do not include in population total
                 populationTotal += this.props.stateObj.associatedPopulationsObj[zipCode]
             })
         }
@@ -620,25 +627,46 @@ class ResultsComponent extends Component {
 
     }
 
-    setContent(obj){
-        this.setState({content: obj})
-    }
+
 
 
 
 
     render(){
 
+        if(this.state.finalZipCountByDate.size == 0)
+            return (<></>)
+
+        console.log("render ResultsComponent")
+        console.log(this.state)
+
+        let showingRegionsText
+        if(this.props.stateObj.singleZip.length == 0){
+            showingRegionsText = "Showing all covid cases within region below"
+        }
+        else{
+            showingRegionsText = ""
+
+
+            let tempArray = this.props.stateObj.singleZip.map((zipCode) => {
+                return this.props.stateObj.zipCodeNames[zipCode]
+            })
+
+            showingRegionsText += tempArray.join(", ")
+        }
 
         return(
             <>
 
 
                 <br />
-                <h3>Current risk per capita (past 7 days)</h3>
-                <MapChartHeatmap singleZip={this.props.stateObj.singleZip} associatedPopulationsObj={this.props.stateObj.associatedPopulationsObj} dateRangeArray={this.state.dateRangeArray} zipCodeMap={this.state.zipCodeMap}
-                                 finalZipCountByDate={this.state.finalZipCountByDate} zipCodesAllowed={this.props.zipCodesAllowed} setTooltipContent={this.setContent}
+                <h4>Current Risk (per capita, past {this.state.dateRangeArray.length} days)</h4>
+                <h5>{showingRegionsText}</h5>
+                <MapChartHeatmap stateObj={this.props.stateObj} singleZip={this.props.stateObj.singleZip} chulaVistaPopulations={this.props.stateObj.chulaVistaPopulations}
+                                 associatedPopulationsObj={this.props.stateObj.associatedPopulationsObj} dateRangeArray={this.state.dateRangeArray} zipCodeMap={this.state.zipCodeMap}
+                                 finalZipCountByDate={this.state.finalZipCountByDate} zipCodesAllowed={this.props.zipCodesAllowed}
                                  updateSingleZip={this.updateSingleZip}
+                                 updateParentState={this.updateParentState}
 
                                  updateZipCodesAllowed={(zipCodesAllowed) => {
                                      this.updateZipCodesAllowed(zipCodesAllowed)
@@ -662,7 +690,8 @@ class ResultsComponent extends Component {
 
 
 
-                <ReactTooltip>{this.state.content}</ReactTooltip>
+
+                <Button variant="secondary" className="show-pb" onClick={() => {this.props.updateState({clearSelection: true})}}>Clear selection</Button>
 
                 <div className="contributionChart">
                     <CanvasJSChart options={this.state.optionsWeekly} />
