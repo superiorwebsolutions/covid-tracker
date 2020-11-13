@@ -687,20 +687,7 @@ class ResultsComponent extends Component {
         console.log("render ResultsComponent")
         console.log(this.state)
 
-        let showingRegionsText
-        if(this.props.stateObj.singleZip.length == 0){
-            showingRegionsText = ""
-        }
-        else{
-            showingRegionsText = ""
 
-
-            let tempArray = this.props.stateObj.singleZip.map((zipCode) => {
-                return this.props.stateObj.zipCodeNames[zipCode]
-            })
-
-            showingRegionsText += tempArray.join(", ")
-        }
 
         return(
             <>
@@ -710,15 +697,9 @@ class ResultsComponent extends Component {
                     {/*<h4>Current Risk <small>(showing past {this.getNumDays()} days)</small></h4>*/}
 
 
-                    <h5 className="showing-regions-text">{showingRegionsText}</h5>
 
-                        {this.props.singleZip.length > 0 &&
 
-                        <Button variant="primary" className="clear-selection-top" onClick={() => {
-                            this.props.updateClearSelection(true)
-                        }}>Select All Regions</Button>
 
-                        }
 
 
                         <MapChartHeatmap stateObj={this.props.stateObj} singleZip={this.props.stateObj.singleZip} chulaVistaPopulations={this.props.stateObj.chulaVistaPopulations}
@@ -739,13 +720,13 @@ class ResultsComponent extends Component {
 
 
 
-                    <h5>(Select regions above to filter results)</h5>
+                    <h5><em>(Select regions above to filter results)</em></h5>
                 </div>
 
-                <hr />
-                <br />
+                {/*<hr />*/}
+                {/*<br />*/}
 
-                <h5 className="graphs-below">Graphs below represent all cases in the selected regions</h5>
+                {/*<h5 className="graphs-below">Graphs below represent all cases in the selected regions</h5>*/}
 
                 <div className="contributionChart">
                     {this.getNumDays() > 20 &&

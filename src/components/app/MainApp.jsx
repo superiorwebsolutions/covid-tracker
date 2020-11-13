@@ -213,14 +213,14 @@ class MainApp extends Component{
 
                 <div className="container">
 
-                    <h3 className="main-title">Covid Risk Tracker</h3>
+                    <h4 className="main-title">San Diego Covid Tracker</h4>
 
 
-                    <FilterComponent setStartDate={this.setStartDate} startDate={this.state.startDate} handleStateObj={this.handleStateObj}></FilterComponent>
+                    <FilterComponent zipCodeNames={this.state.zipCodeNames} singleZip={this.state.singleZip} updateClearSelection={this.updateClearSelection} setStartDate={this.setStartDate} startDate={this.state.startDate} handleStateObj={this.handleStateObj}></FilterComponent>
 
                     <div className="clearfix"></div>
 
-                    <ResultsComponent chulaVistaOnly={this.state.chulaVistaOnly} startDate={this.state.startDate} singleZip={this.state.singleZip} stateObj={this.state} zipCodesAllowed={this.state.zipCodesAllowed} updateClearSelection={this.updateClearSelection} updateState={this.updateState}></ResultsComponent>
+                    <ResultsComponent chulaVistaOnly={this.state.chulaVistaOnly} startDate={this.state.startDate} singleZip={this.state.singleZip} stateObj={this.state} zipCodesAllowed={this.state.zipCodesAllowed} updateState={this.updateState}></ResultsComponent>
 
 
                     <br />

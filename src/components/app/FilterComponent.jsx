@@ -103,10 +103,10 @@ class FilterComponent extends Component{
 
     handleScroll() {
         const offset=window.scrollY;
-        if(offset > 200 && this.state.scrolled == false){
+        if(offset > 120 && this.state.scrolled == false){
             this.setScrolled(true);
         }
-        else if(offset <= 200 && this.state.scrolled == true){
+        else if(offset <= 120 && this.state.scrolled == true){
             this.setScrolled(false);
         }
     }
@@ -120,17 +120,89 @@ class FilterComponent extends Component{
 
 
         let navbarClass = ""
+        let hideMenu = ""
+        let hideScroller = ""
         if(this.state.scrolled){
             navbarClass = "scrolled"
+            hideMenu = "hide"
+        }
+        else{
+            hideScroller = "display-none"
+        }
+
+        let showingRegionsText
+        if(this.props.singleZip.length == 0){
+            showingRegionsText = ""
+        }
+        else{
+            showingRegionsText = ""
+
+
+            let tempArray = this.props.singleZip.map((zipCode) => {
+                return this.props.zipCodeNames[zipCode]
+            })
+
+            showingRegionsText += tempArray.join(", ")
         }
 
         //TODO:  toggleShowAll toggleHideAll for mapchart
         return(
             <>
 
+                <header className="navbar" style={{marginBottom: "10px"}}>
 
-                 {/*TODO:  top filter is sticky*/}
-                <header className={"navbar " + navbarClass}>
+                <ToggleButtonGroup name="filters" className={"topSection " + hideMenu}>
+
+                    {dropdownOptions.map(radio => (
+                        <Button
+                            key={radio.value}
+                            type="radio"
+                            variant="outline-primary"
+                            value={radio.value}
+                            active={this.state.activeButton == radio.value}
+                            onClick={(e) => this.setActive(e.currentTarget.value)}
+                        >
+                            {radio.name}
+                        </Button>
+                    ))}
+
+                    {/*<Button id="show-week" variant="secondary" className="show-pb" onClick={() => {this.setStartDate(7)}}>Show past week</Button>*/}
+
+                    {/*<Button id="show-all" variant="primary" className="show-pb" onClick={() => {this.loadMore(true)}}>Show all time</Button>*/}
+
+                    {/*{ this.state.showPbButton || this.state.showLoadButton ? null : <Button variant="secondary" className="show-pb" onClick={this.resetChart}>Reset Graphs</Button> }*/}
+
+
+
+                </ToggleButtonGroup>
+
+
+                    {this.props.singleZip.length > 0 &&
+                        <>
+                    <div className="flex-row">
+
+
+                        <Button variant="primary" className="clear-selection-top" size="sm"  onClick={() => {
+                            this.props.updateClearSelection(true)
+                        }}>Reset Filters</Button>
+
+
+
+
+                    </div>
+
+                    <div className="flex-row">
+                        <h5 className="showing-regions-text">{showingRegionsText}</h5>
+                    </div>
+
+                    </>
+
+                    }
+
+                </header>
+
+
+                <header className={"navbar " + hideScroller + " " + navbarClass}>
 
 
 
@@ -150,6 +222,8 @@ class FilterComponent extends Component{
                                 </Button>
                             ))}
 
+
+
                         {/*<Button id="show-week" variant="secondary" className="show-pb" onClick={() => {this.setStartDate(7)}}>Show past week</Button>*/}
 
                         {/*<Button id="show-all" variant="primary" className="show-pb" onClick={() => {this.loadMore(true)}}>Show all time</Button>*/}
@@ -158,6 +232,29 @@ class FilterComponent extends Component{
 
 
                     </ToggleButtonGroup>
+
+
+                    {this.props.singleZip.length > 0 &&
+                    <>
+                        <div className="flex-row">
+
+
+                            <Button variant="primary" className="clear-selection-top" size="sm"  onClick={() => {
+                                this.props.updateClearSelection(true)
+                            }}>Reset Filters</Button>
+
+
+
+
+                        </div>
+
+                        <div className="flex-row">
+                            <h5 className="showing-regions-text">{showingRegionsText}</h5>
+                        </div>
+
+                    </>
+
+                    }
 
                 </header>
 

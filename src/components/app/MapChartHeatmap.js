@@ -96,6 +96,8 @@ class MapChartHeatmap extends Component {
         // }
             this.props.updateSingleZip(zipCodeArray)
 
+        this.forceUpdate();
+
     };
 
 
@@ -127,7 +129,7 @@ class MapChartHeatmap extends Component {
 
         return (
             <>
-                <ReactTooltip>{this.state.content}</ReactTooltip>
+                {/*<ReactTooltip>{this.state.content}</ReactTooltip>*/}
 
                 <ComposableMap data-tip="" projection="geoAlbersUsa" projectionConfig={{
                     scale: 90000,
@@ -242,45 +244,62 @@ class MapChartHeatmap extends Component {
 
 
                                             let cellStyle = {
-                                                fill: colorScale(locationObj.caseCount),
+                                                fill: colorScale(locationObj.caseCount) ? colorScale(locationObj.caseCount) : "whitesmoke",
                                                 stroke: "#333",
                                                 strokeWidth: 1,
                                                 outline: 'none'
                                             }
 
-                                            let cellStyleHover = {fill: "#782618", stroke: "#1C446E", outline: 'none'}
+
+
+                                            let isSingleZip = false
+                                            if(this.props.singleZip.length > 0){
+                                                if(this.props.singleZip.includes(locationObj.id)){
+                                                    isSingleZip = true
+                                                }
+                                            }
+                                            let cellStyleHover = {fill: isSingleZip ? colorScale(locationObj.caseCount) : "transparent", stroke: "#1C446E", outline: 'none'}
 
                                             // TODO:  do not refresh this render when settooltipcontent is called
                                             return (
                                                 <>
                                                     <Geography
-                                                        key={locationObj.id}
-                                                        geography={geo}
-                                                        // fill={colorScale(locationObj ? locationObj.caseCount : "white")}
-                                                        fill="black"
-                                                        stroke="white"
-                                                        onClick={() => {
-                                                            this.handleClick(locationObj.id)
-                                                        }
-
-
-                                                        }
-
-                                                        onMouseEnter={() => {
-                                                            this.setContent(locationObj.tooltip)
-                                                            setTimeout( () => {
-                                                                this.setContent("")
-                                                            }, 2000);
-                                                        }}
-                                                        onMouseLeave={() => {
-                                                            this.setContent("")
-                                                        }}
-
                                                         style={{
                                                             default: cellStyle,
                                                             hover: cellStyleHover,
                                                             // pressed: cellStyleHover
                                                         }}
+
+
+                                                        key={locationObj.id}
+                                                        geography={geo}
+                                                        // fill={}
+                                                        // fill="black"
+                                                        onClick={() => {
+
+                                                            // this.setContent(locationObj.tooltip)
+                                                            // setTimeout( () => {
+                                                            //     this.setContent("")
+                                                            // }, 2000);
+
+                                                            this.handleClick(locationObj.id)
+
+
+                                                        }
+
+
+                                                        }
+
+                                                        // onMouseEnter={() => {
+                                                        //     this.setContent(locationObj.tooltip)
+                                                        //     setTimeout( () => {
+                                                        //         this.setContent("")
+                                                        //     }, 2000);
+                                                        // }}
+                                                        // onMouseLeave={() => {
+                                                        //     this.setContent("")
+                                                        // }}
+
 
 
                                                     />
