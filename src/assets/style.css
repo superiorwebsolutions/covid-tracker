@@ -1,5 +1,4 @@
 
-
 .boundary-img{
     width:98%;
     max-width:900px;
@@ -49,4 +48,51 @@ CanvasJSChart{
     padding-bottom:60px;
     display:block;
     clear:both;
+}
+.main-title{
+    margin-top:15px;
+    margin-bottom:20px;
+}
+.graphs-below{
+    margin-bottom:25px;
+}
+  .content{
+      width: 80%;
+      margin:2rem 10% 0 10%;
+      max-width: 100%;
+      box-sizing: border-box;
+      min-height: 100vh;
+  }
+.box{
+    width:80%;
+    margin:2rem 10% 0 10%;
+    height:100vh;
+    background-color:plum;
+}
+  .navbar{
+      width: 100%;
+      min-height: 6vh;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: white;
+      border-bottom: 1px solid transparent;
+  }
+  .scrolled{
+      position: fixed;
+      top: 0;
+      left: 0;
+      background-color: white;
+      border-bottom: 1px solid #666;
+  }
+.logo img{
+    width: 50px;
+}
+.topSection{
+    max-width: 1140px;
+    margin:auto;
+}
+header{
+    z-index:9999!important;
 }

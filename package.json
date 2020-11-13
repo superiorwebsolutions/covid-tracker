@@ -17,6 +17,7 @@
     "react-scripts": "4.0.0",
     "react-simple-maps": "^2.3.0",
     "react-tooltip": "^4.2.10",
+    "styled-components": "^5.2.1",
     "web-vitals": "^0.2.4"
   },
   "scripts": {

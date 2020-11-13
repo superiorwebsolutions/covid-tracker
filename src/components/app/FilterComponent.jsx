@@ -1,7 +1,22 @@
-import React, {Component, useState} from "react";
-import {Button} from "react-bootstrap";
+import React, {Component, useState, useEffect} from "react";
+import {Navbar, ToggleButtonGroup, ButtonGroup, Button, ToggleButton} from "react-bootstrap";
+import styled from "styled-components";
+import Dropdown from "react-bootstrap";
+
+
 
 const dateFormat = require('dateformat');
+
+
+const dropdownOptions = [
+    { name: 'Past 7 days', value: 'past-week' },
+    { name: '30 days', value: 'past-month' },
+    { name: '90 days', value: 'past-3-months' },
+    { name: 'All Time', value: 'all-time' },
+
+
+];
+
 
 
 class FilterComponent extends Component{
@@ -13,11 +28,17 @@ class FilterComponent extends Component{
         this.loadMore = this.loadMore.bind(this)
         this.resetChart = this.resetChart.bind(this)
         this.setStartDate = this.setStartDate.bind(this)
+        this.handleScroll = this.handleScroll.bind(this)
 
         this.state = {
             showPbButton: true,
-            showLoadButton: true
+            showLoadButton: true,
+            activeButton: "past-month",
+            scrolled: false
         }
+
+        this.setActive("past-month")
+
     }
 
 
@@ -60,13 +81,48 @@ class FilterComponent extends Component{
 
 
     componentDidMount() {
+        window.addEventListener('scroll',this.handleScroll)
     }
 
+    setActive(button){
+        if(button == "all-time")
+            this.loadMore()
+        else if(button == 'past-week')
+            this.setStartDate(7)
+        else if(button == 'past-3-months')
+            this.setStartDate(90)
+        else
+            this.setStartDate(30)
 
+        this.setState({activeButton: button})
+    }
+
+    setScrolled(booleanVal){
+        this.setState({scrolled: booleanVal})
+    }
+
+    handleScroll() {
+        const offset=window.scrollY;
+        if(offset > 200 && this.state.scrolled == false){
+            this.setScrolled(true);
+        }
+        else if(offset <= 200 && this.state.scrolled == true){
+            this.setScrolled(false);
+        }
+    }
     render(){
+        console.log("render FilterComponent")
+        console.log(this.state)
 
 
-        // TODO:  Add date range
+
+
+
+
+        let navbarClass = ""
+        if(this.state.scrolled){
+            navbarClass = "scrolled"
+        }
 
         //TODO:  toggleShowAll toggleHideAll for mapchart
         return(
@@ -74,19 +130,36 @@ class FilterComponent extends Component{
 
 
                  {/*TODO:  top filter is sticky*/}
-
-                <div className="topSection">
-                    {/*{ this.state.showPbButton ? <Button variant="secondary" className="show-pb" onClick={() => {this.handleChange(true)}}>Show PB only</Button> : null }*/}
-
-                    <Button variant="secondary" className="show-pb" onClick={() => {this.setStartDate(7)}}>Show past week</Button>
-
-                    { this.state.showLoadButton ? <Button variant="primary" className="show-pb" onClick={() => {this.loadMore(true)}}>Show all time</Button> : null }
-
-                    { this.state.showPbButton || this.state.showLoadButton ? null : <Button variant="secondary" className="show-pb" onClick={this.resetChart}>Reset Graphs</Button> }
+                <header className={"navbar " + navbarClass}>
 
 
-                </div>
 
+
+                    <ToggleButtonGroup name="filters" className="topSection">
+
+                            {dropdownOptions.map(radio => (
+                                <Button
+                                    key={radio.value}
+                                    type="radio"
+                                    variant="outline-primary"
+                                    value={radio.value}
+                                    active={this.state.activeButton == radio.value}
+                                    onClick={(e) => this.setActive(e.currentTarget.value)}
+                                >
+                                    {radio.name}
+                                </Button>
+                            ))}
+
+                        {/*<Button id="show-week" variant="secondary" className="show-pb" onClick={() => {this.setStartDate(7)}}>Show past week</Button>*/}
+
+                        {/*<Button id="show-all" variant="primary" className="show-pb" onClick={() => {this.loadMore(true)}}>Show all time</Button>*/}
+
+                        {/*{ this.state.showPbButton || this.state.showLoadButton ? null : <Button variant="secondary" className="show-pb" onClick={this.resetChart}>Reset Graphs</Button> }*/}
+
+
+                    </ToggleButtonGroup>
+
+                </header>
 
 
             </>
@@ -98,3 +171,5 @@ class FilterComponent extends Component{
 
 }
 export default FilterComponent
+
+

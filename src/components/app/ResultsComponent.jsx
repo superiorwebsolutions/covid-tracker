@@ -269,7 +269,12 @@ class ResultsComponent extends Component {
         let queue = []
         let finalCountByDateLength = finalCountByDate.size
 
+
         // TODO:  Move finalZipCountByDate to average below
+
+        let runningAverageNumDays = null
+        if(this.getNumDays() < 8)
+            runningAverageNumDays = 1
 
         let i = 0
         for (let [dateString, result] of finalCountByDate) {
@@ -277,13 +282,15 @@ class ResultsComponent extends Component {
             queue.push(result)
 
             if(i > finalCountByDateLength - 5){
-                while(queue.length > 3)
+
+                while(queue.length > (runningAverageNumDays ? runningAverageNumDays : 3))
                     queue.shift()
             }
             else{
-                if (queue.length > 10)
+                if (queue.length > (runningAverageNumDays ? runningAverageNumDays : 10))
                     queue.shift()
             }
+
 
 
             let average = 0
@@ -331,11 +338,6 @@ class ResultsComponent extends Component {
 
         let dateRangeArray = getDaysArray(new Date(startDate), new Date(endDate));
 
-        let dateRangeLength = this.getNumDays()
-
-
-
-
 
         let dataPointsArrayAverage = []
         let dataPointsArray = []
@@ -374,7 +376,7 @@ class ResultsComponent extends Component {
                 last = keys.pop();
             keys.reduce((r, a) => r[a] = r[a] || {}, objectAverage)[last] = value;
 
-            if(value > 0) {
+            if(value >= 0) {
 
 
                 dataPointsArrayAverage.push({x: new Date(key), y: value})
@@ -393,7 +395,7 @@ class ResultsComponent extends Component {
                 last = keys.pop();
             keys.reduce((r, a) => r[a] = r[a] || {}, object)[last] = value;
 
-            if(value > 0) {
+            if(value >= 0) {
                 dataPointsArray.push({x: new Date(key), y: value})
 
                 dataPointsArrayPerCapita.push({x: new Date(key), y: Math.round((value / populationTotal) * 100000)})
@@ -402,6 +404,8 @@ class ResultsComponent extends Component {
             }
 
         });
+
+
 
         let reversedMapWeekly = new Map([...finalCountByDate].reverse());
 
@@ -609,7 +613,6 @@ class ResultsComponent extends Component {
 
 
 
-
         dateRangeArray.forEach((date) => {
             let dateFormatted = dateFormat(date, "yyyy/mm/dd")
 
@@ -633,6 +636,7 @@ class ResultsComponent extends Component {
                 })
             }
         })
+
 
 
         this.setState({
@@ -674,7 +678,7 @@ class ResultsComponent extends Component {
 
         let showingRegionsText
         if(this.props.stateObj.singleZip.length == 0){
-            showingRegionsText = "Showing all covid cases within region below"
+            showingRegionsText = ""
         }
         else{
             showingRegionsText = ""
@@ -693,14 +697,14 @@ class ResultsComponent extends Component {
 
                 <br />
                 <div className="map-wrapper">
-                    <h4>Current Risk <small>(showing past {this.getNumDays()} days)</small></h4>
-                        <h5 className="showing-regions-text">{showingRegionsText}</h5>
+                    {/*<h4>Current Risk <small>(showing past {this.getNumDays()} days)</small></h4>*/}
+
 
                         {this.props.singleZip.length > 0 &&
 
                         <Button variant="primary" className="clear-selection-top" onClick={() => {
                             this.props.updateClearSelection(true)
-                        }}>Clear selection</Button>
+                        }}>Select All</Button>
 
                         }
 
@@ -722,36 +726,32 @@ class ResultsComponent extends Component {
                         />
 
 
-                    {this.props.singleZip.length > 0 &&
-
-                        <Button variant="primary" className="clear-selection-bottom" onClick={() => {
-                        this.props.updateClearSelection(true)
-                    }}>Clear selection</Button>
-
-                    }
-                    <h5>(Select a region above to filter results)</h5>
+                    <h5 className="showing-regions-text">{showingRegionsText}</h5>
+                    <h5>(Select region(s) above to filter results)</h5>
                 </div>
 
                 <hr />
                 <br />
 
+                <h5 className="graphs-below">Graphs below represent all cases in the selected regions</h5>
 
                 <div className="contributionChart">
-                    <h5>Cases Per Week <small>(highlighted regions only)</small></h5>
-                    <CanvasJSChart options={this.state.optionsWeekly} />
-                    <br />
-                    <h5>Cases Per Day, average <small>(highlighted regions only)</small></h5>
+                    {this.getNumDays() > 20 &&
+                    <>
+                        <h5>Cases Per Week {this.props.singleZip.length > 0 &&  <small>(selected regions only)</small>}</h5>
+                        <CanvasJSChart options={this.state.optionsWeekly} />
+                        <br />
+                    </>
+                    }
+
+                    <h5>Cases Per Day (averaged) {this.props.singleZip.length > 0 &&  <small>(selected regions only)</small>}</h5>
                     <CanvasJSChart options={this.state.optionsAverage} />
 
+                    <br />
+                    <h5>Cases Per Capita (100k) {this.props.singleZip.length > 0 &&  <small>(selected regions only)</small>}</h5>
+                    <small>Purple Tier restrictions (>7 per 100k)</small>
+                    <CanvasJSChart options={this.state.optionsDaily} />
 
-                    {this.getNumDays() > 20 &&
-                        <>
-                            <br />
-                            <h5>Cases Per Capita (100k) <small>(highlighted regions only)</small></h5>
-                            <small>Purple Tier restrictions (>7 per 100k)</small>
-                            <CanvasJSChart options={this.state.optionsDaily} />
-                        </>
-                    }
                 </div>
 
                 <br /> <br /> <br />

@@ -12,13 +12,10 @@ import MainApp from "./components/app/MainApp";
 
 
 function App() {
-
   return (
       <>
 
         <div className="App">
-
-
 
 
               <MainApp></MainApp>

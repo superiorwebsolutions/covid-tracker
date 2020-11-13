@@ -50,7 +50,8 @@ class MapChartHeatmap extends Component {
             // zipCodeMap: new Map(),
             finalZipCountByDate: new Map(),
             dateRangeArray: new Map(),
-            content: ""
+            content: "",
+            coordinates: 32.769248
         }
 
         // this.props.updateZipCodesAllowed([])
@@ -119,7 +120,6 @@ class MapChartHeatmap extends Component {
         let associatedPopulationsObj
         if(this.props.stateObj.chulaVistaOnly)
             associatedPopulationsObj = this.props.chulaVistaPopulations
-
         else
             associatedPopulationsObj = this.props.associatedPopulationsObj
 
@@ -129,16 +129,26 @@ class MapChartHeatmap extends Component {
             <>
                 <ReactTooltip>{this.state.content}</ReactTooltip>
 
-                <ComposableMap data-tip="" projection="geoAlbersUsa" projectionConfig={{scale: 120000}}
+                <ComposableMap data-tip="" projection="geoAlbersUsa" projectionConfig={{
+                    scale: 90000,
+                    // center: [-117.155, 32.769248],
+                    // rotate: [, 0, 0]
+
+                }}
+
                                width={600}
                                height={490}
                                style={{
                                    width: "100%",
                                    height: "auto",
                                }}>
-                    <ZoomableGroup center={[-117.155, 32.769248]} zoom={1} minZoom={1} maxZoom={1} disablePanning>
+                    <ZoomableGroup center={[-117.155, this.state.coordinates]} zoom={1} maxZoom={1} disablePanning disableZooming onMoveStart={(position) => {
 
-                        <Geographies geography="./zipcodes.geojson">
+                        this.setState({coordinates: this.state.coordinates + 0.00001})
+
+                    }}>
+
+                        <Geographies geography="./zipcodes.geojson" disableOptimization={false}>
                             {
 
 
@@ -202,6 +212,11 @@ class MapChartHeatmap extends Component {
                                             // let longStart = coords[0][0][0][1]
                                             // let longEnd = coords[0][0][halfwayInt][1]
 
+                                            if(this.props.stateObj.chulaVistaOnly) {
+                                                this.props.stateObj.zipCodeCoordinates[geoZip].x = 0
+                                                this.props.stateObj.zipCodeCoordinates[geoZip].y = 0
+                                            }
+
                                             locationObj = {
                                                 id: geoZip,
                                                 caseCount: Math.round(caseCountPerCapita100k),
@@ -209,8 +224,10 @@ class MapChartHeatmap extends Component {
                                                 zipCodeName: zipCodeName,
                                                 tooltip: tooltipText,
                                                 centerCoordinate: [this.props.stateObj.zipCodeCoordinates[geoZip].long, this.props.stateObj.zipCodeCoordinates[geoZip].lat],
+
                                                 x: this.props.stateObj.zipCodeCoordinates[geoZip].x,
                                                 y: this.props.stateObj.zipCodeCoordinates[geoZip].y
+
                                             }
 
 
@@ -221,7 +238,7 @@ class MapChartHeatmap extends Component {
                                                 outline: 'none'
                                             }
 
-                                            let cellStyleHover = {fill: "#1C446E", stroke: "#1C446E", outline: 'none'}
+                                            let cellStyleHover = {fill: "#782618", stroke: "#1C446E", outline: 'none'}
 
                                             // TODO:  do not refresh this render when settooltipcontent is called
                                             return (
@@ -233,9 +250,6 @@ class MapChartHeatmap extends Component {
                                                         fill="black"
                                                         stroke="white"
                                                         onClick={() => {
-                                                            if (true || this.props.stateObj.chulaVistaOnly != true) {
-                                                                this.props.updateParentState({clearSelection: false})
-                                                            }
                                                             this.handleClick(locationObj.id)
                                                         }
 
@@ -261,7 +275,7 @@ class MapChartHeatmap extends Component {
 
                                                     />
 
-                                                    {locationObj.x &&
+                                                    {locationObj.x && !this.props.stateObj.chulaVistaOnly &&
                                                     <Annotation
                                                         subject={locationObj.centerCoordinate}
                                                         dx={locationObj.x}
@@ -340,8 +354,8 @@ class MapChartHeatmap extends Component {
 
                         </Geographies>
 
+                </ZoomableGroup>
 
-                    </ZoomableGroup>
                 </ComposableMap>
 
             </>

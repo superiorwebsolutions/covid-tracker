@@ -122,7 +122,7 @@ class MainApp extends Component{
                 92037: {lat: 32.8283259, long: -117.255854, x: -60, y: -20},
                 92121: {lat: 32.8981142, long: -117.2029363, x: 50, y: -10},
                 92122: {lat: 32.8563846, long: -117.2029363, x:-33, y: -42},
-                92117: {lat: 32.8250767, long: -117.2029363, x: 90, y: -60},
+                92117: {lat: 32.8250767, long: -117.2029363, x: 90, y: -55},
                 92111: {lat: 32.8256427, long: -117.1558867, x:30, y: -53},
                 92123: {lat: 32.8102534, long: -117.1323579, x: 15, y: -69},
                 92124: {lat: 32.8250787, long: -117.091176, x: 70, y: -40},
@@ -137,7 +137,7 @@ class MainApp extends Component{
                 92182: {lat: 32.7759882, long: -117.072053, x: 80, y: 30},
                 92106: {lat: 32.7090984, long: -117.241156, x: -60, y: 40},
                 92140: {lat: 32.7407191, long: -117.2036713, x: -120, y: 20},
-                92104: {lat: 32.7398671, long: -117.1205925, x: 140, y: -140},
+                92104: {lat: 32.7398671, long: -117.1205925, x: 140, y: -60},
                 92105: {lat: 32.7348953, long: -117.0970596, x: 40, y: 20},  // city heights
                 92101: {lat: 32.7269669, long: -117.1647094, x: -50, y: 80},
                 92102: {lat: 32.7162223, long: -117.1323579, x: 80, y: 20},
@@ -207,6 +207,8 @@ class MainApp extends Component{
             <>
 
                 <div className="container">
+
+                    <h3 className="main-title">Covid Risk Tracker</h3>
 
 
                     <FilterComponent setStartDate={this.setStartDate} startDate={this.state.startDate} handleStateObj={this.handleStateObj}></FilterComponent>
