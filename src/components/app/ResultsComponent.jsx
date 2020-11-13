@@ -660,38 +660,35 @@ class ResultsComponent extends Component {
 
 
                 <br />
-                <h4>Current Risk (per capita, past {this.state.dateRangeArray.length} days)</h4>
-                <h5>{showingRegionsText}</h5>
-                <MapChartHeatmap stateObj={this.props.stateObj} singleZip={this.props.stateObj.singleZip} chulaVistaPopulations={this.props.stateObj.chulaVistaPopulations}
-                                 associatedPopulationsObj={this.props.stateObj.associatedPopulationsObj} dateRangeArray={this.state.dateRangeArray} zipCodeMap={this.state.zipCodeMap}
-                                 finalZipCountByDate={this.state.finalZipCountByDate} zipCodesAllowed={this.props.zipCodesAllowed}
-                                 updateSingleZip={this.updateSingleZip}
-                                 updateParentState={this.updateParentState}
-
-                                 updateZipCodesAllowed={(zipCodesAllowed) => {
-                                     this.updateZipCodesAllowed(zipCodesAllowed)
-
-                                 }}
+                <div className="map-wrapper">
+                    <h5>Current Risk (per capita, past {this.state.dateRangeArray.length} days)</h5>
+                        <h6 className="showing-regions-text">{showingRegionsText}</h6>
+                        <MapChartHeatmap stateObj={this.props.stateObj} singleZip={this.props.stateObj.singleZip} chulaVistaPopulations={this.props.stateObj.chulaVistaPopulations}
+                        associatedPopulationsObj={this.props.stateObj.associatedPopulationsObj} dateRangeArray={this.state.dateRangeArray} zipCodeMap={this.state.zipCodeMap}
+                        finalZipCountByDate={this.state.finalZipCountByDate} zipCodesAllowed={this.props.zipCodesAllowed}
+                        updateSingleZip={this.updateSingleZip}
+                        updateParentState={this.updateParentState}
 
 
+                        updateZipCodesAllowed={(zipCodesAllowed) => {
+                        this.updateZipCodesAllowed(zipCodesAllowed)
 
-                />
-
-
-                {/*<h3>Show/hide specific regions</h3>*/}
-                {/*<MapChart associatedPopulationsObj={this.props.stateObj.associatedPopulationsObj} dateRangeArray={this.state.dateRangeArray} zipCodeMap={this.state.zipCodeMap}*/}
-                {/*          finalZipCountByDate={this.state.finalZipCountByDate} zipCodesAllowed={this.props.zipCodesAllowed} setTooltipContent={this.setContent}*/}
-                {/*          updateZipCodesAllowed={(zipCodesAllowed) => {*/}
-                {/*              this.updateZipCodesAllowed(zipCodesAllowed)*/}
-                {/*              this.refreshResults()*/}
-                {/*          }*/}
-                {/*          }*/}
-                {/*              />*/}
+                    }}
 
 
 
+                        />
 
-                <Button variant="secondary" className="show-pb" onClick={() => {this.props.updateState({clearSelection: true})}}>Clear selection</Button>
+
+                    {this.props.stateObj.singleZip.length > 0 &&
+
+                        <Button variant="secondary" className="clear-selection" onClick={() => {
+                        this.props.updateClearSelection(true)
+                    }}>Clear selection</Button>
+
+                    }
+                </div>
+
 
                 <div className="contributionChart">
                     <CanvasJSChart options={this.state.optionsWeekly} />

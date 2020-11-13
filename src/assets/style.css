@@ -12,9 +12,30 @@
     margin-top: 20px;
     font-size:18px;
 }
+.clear-selection{
+    margin: auto;
+    display: block;
+    margin-top:-20px;
+    font-size:18px;
+}
 
+.showing-regions-text{
+    color: #1C446E;
+    margin-bottom: 15px;
+}
 
 svg {
     display: inline-block;
     vertical-align: middle;
+}
+
+.zip-area-label{
+    font-weight: bold
+}
+
+path{
+    cursor:pointer!important;
+}
+.map-wrapper{
+    margin-bottom: 50px;
 }

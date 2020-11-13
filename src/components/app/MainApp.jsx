@@ -116,6 +116,39 @@ class MainApp extends Component{
                 91913: "Chula Vista (otay ranch)"
 
             },
+            zipCodeCoordinates: {
+                92037: {lat: 32.8283259, long: -117.255854, x: -80, y: -20},
+                92121: {lat: 32.8981142, long: -117.2029363, x: 50, y: -10},
+                92122: {lat: 32.8563846, long: -117.2029363, x:-33, y: -42},
+                92117: {lat: 32.8250767, long: -117.2029363, x: 90, y: -60},
+                92111: {lat: 32.8256427, long: -117.1558867, x:30, y: -53},
+                92123: {lat: 32.8102534, long: -117.1323579, x: 15, y: -69},
+                92124: {lat: 32.8250787, long: -117.091176, x: 70, y: -40},
+                92120: {lat: 32.7926264, long: -117.0735241, x: 60, y: -20},
+                92109: {lat: 32.7920948, long: -117.2323367, x: -80, y: -20},
+                92108: {lat: 32.7742488, long: -117.1411815},  // mission valley
+                92107: {lat: 32.7409782, long: -117.2499749, x: -80, y: -20},
+                92110: {lat: 32.7657318, long: -117.199996, x: -120, y: -20},
+                92103: {lat: 32.749789, long: -117.1676501, x: -70, y: 80}, // hillcrest
+                92116: {lat: 32.7679176, long: -117.1235339, x:130, y: 10},
+                92115: {lat: 32.7612759, long: -117.0735241, x: 60, y: 30}, // sdsu area
+                92182: {lat: 32.7759882, long: -117.072053, x: 80, y: 30},
+                92106: {lat: 32.7090984, long: -117.241156, x: -60, y: 40},
+                92140: {lat: 32.7407191, long: -117.2036713, x: -120, y: 20},
+                92104: {lat: 32.7398671, long: -117.1205925, x: 140, y: -140},
+                92105: {lat: 32.7348953, long: -117.0970596, x: 40, y: 20},  // city heights
+                92101: {lat: 32.7269669, long: -117.1647094, x: -50, y: 80},
+                92102: {lat: 32.7162223, long: -117.1323579, x: 80, y: 20},
+
+                92113: {lat: 32.6980553, long: -117.1205925, x: 50, y: 30},
+
+                92136: {lat: 32.6833364, long: -117.1220632, x: 1, y: 30},
+
+
+
+
+
+            },
             chulaVistaOnly: false,
             chulaVistaPopulations: {
                 91910: 77369,
@@ -132,6 +165,7 @@ class MainApp extends Component{
 
         this.updateState = this.updateState.bind(this)
         this.handleStateObj = this.handleStateObj.bind(this)
+        this.updateClearSelection = this.updateClearSelection.bind(this)
 
 
 
@@ -146,8 +180,12 @@ class MainApp extends Component{
 
     updateState(newState){
         this.setState(newState)
-         // console.log(this.state)
+         console.log(this.state)
     }
+    updateClearSelection(){
+        this.setState({singleZip: []})
+    }
+
 
 
 
@@ -169,7 +207,7 @@ class MainApp extends Component{
 
                     <div className="clearfix"></div>
 
-                    <ResultsComponent singleZip={this.state.singleZip} stateObj={this.state} zipCodesAllowed={this.state.zipCodesAllowed} updateState={this.updateState}></ResultsComponent>
+                    <ResultsComponent singleZip={this.state.singleZip} stateObj={this.state} zipCodesAllowed={this.state.zipCodesAllowed} updateClearSelection={this.updateClearSelection} updateState={this.updateState}></ResultsComponent>
 
 
                     <br />

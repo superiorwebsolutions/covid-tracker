@@ -67,6 +67,8 @@ class FilterComponent extends Component{
             <>
 
 
+                 {/*TODO:  top filter is sticky*/}
+
                 <div className="topSection">
                     {/*{ this.state.showPbButton ? <Button variant="secondary" className="show-pb" onClick={() => {this.handleChange(true)}}>Show PB only</Button> : null }*/}
 

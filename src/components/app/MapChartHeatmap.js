@@ -129,14 +129,14 @@ class MapChartHeatmap extends Component {
             <>
                 <ReactTooltip>{this.state.content}</ReactTooltip>
 
-                <ComposableMap data-tip="" projection="geoAlbersUsa" projectionConfig={{scale: 100000}}
+                <ComposableMap data-tip="" projection="geoAlbersUsa" projectionConfig={{scale: 120000}}
                                width={980}
                                height={551}
                                style={{
                                    width: "100%",
                                    height: "auto",
                                }}>
-                    <ZoomableGroup center={[-117.192289, 32.769148]} zoom={1} minZoom={1} maxZoom={1} disablePanning>
+                    <ZoomableGroup center={[-117.192289, 32.769248]} zoom={1} minZoom={1} maxZoom={1} disablePanning>
 
                         <Geographies geography="./zipcodes.geojson">
                             {
@@ -148,10 +148,10 @@ class MapChartHeatmap extends Component {
                                     geographies.map((geo) => {
 
 
-
                                         let geoZip = geo.properties.zip
                                         // if((associatedPopulationsObj[geoZip] && this.props.stateObj.singleZip.length === 0) || this.props.stateObj.singleZip.includes(geoZip) == true) {
-                                        if(associatedPopulationsObj[geoZip]) {
+                                        if (associatedPopulationsObj[geoZip]) {
+
 
                                             positionCount += 1
 
@@ -164,28 +164,42 @@ class MapChartHeatmap extends Component {
                                             let numDays = this.props.dateRangeArray.length
                                             let zipCodeName = this.props.stateObj.zipCodeNames[geoZip]
 
-                                            if (zipCodeName == "La Jolla"){
-                                                console.log(geo)
-                                        }
 
                                             caseCount = this.props.zipCodeMap.get(geoZip)
                                             caseCountPerCapita100k = ((caseCount / associatedPopulationsObj[geoZip]) * 100000) / numDays
 
 
-
                                             let tooltipText
-                                            if(caseCount != null){
+                                            if (caseCount != null) {
                                                 tooltipText = zipCodeName + " (" + caseCount + " cases)"
-                                            }
-                                            else{
+                                            } else {
                                                 tooltipText = zipCodeName
                                             }
-                                            let halfwayInt = Math.round((coords[0][0].length - 1) / 2)
-                                            let latStart = coords[0][0][0][0]
-                                            let latEnd = coords[0][0][halfwayInt][0]
 
-                                            let longStart = coords[0][0][0][1]
-                                            let longEnd = coords[0][0][halfwayInt][1]
+                                            // let halfwayInt = Math.round((coords[0][0].length - 1) / 2)
+
+                                            // if (true) {
+                                            //     fetch("https://maps.googleapis.com/maps/api/geocode/json?address="+geoZip+',San Diego&key=AIzaSyCbjGrYMgeklBUA-PIRv87_YI1FeLivEmI')
+                                            //         .then(response => response.json())
+                                            //         .then(data => {
+                                            //             // console.log(data)
+                                            //             let lat = data.results[0].geometry.location.lat
+                                            //             let lng = data.results[0].geometry.location.lng
+                                            //             console.log(geoZip + ": {lat: " + lat + ", long: " + lng + "}")
+                                            //             // const latitude = data.results.geometry.location.lat;
+                                            //             // const longitude = data.results.geometry.location.lng;
+                                            //             // console.log({latitude, longitude})
+                                            //         })
+                                            //
+                                            //     // console.log(geo)
+                                            //     // console.log(halfwayInt)
+                                            // }
+
+                                            // let latStart = coords[0][0][0][0]
+                                            // let latEnd = coords[0][0][halfwayInt][0]
+                                            //
+                                            // let longStart = coords[0][0][0][1]
+                                            // let longEnd = coords[0][0][halfwayInt][1]
 
                                             locationObj = {
                                                 id: geoZip,
@@ -193,17 +207,20 @@ class MapChartHeatmap extends Component {
                                                 cases: caseCount,
                                                 zipCodeName: zipCodeName,
                                                 tooltip: tooltipText,
-                                                centerCoordinate: [(latStart + latEnd) / 2, (longStart + longEnd) / 2]
+                                                centerCoordinate: [this.props.stateObj.zipCodeCoordinates[geoZip].long, this.props.stateObj.zipCodeCoordinates[geoZip].lat],
+                                                x: this.props.stateObj.zipCodeCoordinates[geoZip].x,
+                                                y: this.props.stateObj.zipCodeCoordinates[geoZip].y
                                             }
 
 
+                                            let cellStyle = {
+                                                fill: colorScale(locationObj.caseCount),
+                                                stroke: "#333",
+                                                strokeWidth: 1,
+                                                outline: 'none'
+                                            }
 
-
-
-                                            let cellStyle = { fill: colorScale(locationObj.caseCount), stroke: "#333", strokeWidth: 1, outline: 'none' }
-
-                                            let cellStyleHover = { fill: "#1C446E", stroke: "#1C446E", outline: 'none' }
-
+                                            let cellStyleHover = {fill: "#1C446E", stroke: "#1C446E", outline: 'none'}
 
                                             // TODO:  do not refresh this render when settooltipcontent is called
                                             return (
@@ -211,20 +228,24 @@ class MapChartHeatmap extends Component {
                                                     <Geography
                                                         key={locationObj.id}
                                                         geography={geo}
-                                                          // fill={colorScale(locationObj ? locationObj.caseCount : "white")}
+                                                        // fill={colorScale(locationObj ? locationObj.caseCount : "white")}
                                                         fill="black"
                                                         stroke="white"
                                                         onClick={() => {
-                                                            if(this.props.stateObj.chulaVistaOnly != true){
-                                                                this.props.updateParentState({clearSelection: false})}
-                                                                this.handleClick(locationObj.id)
+                                                            if (true || this.props.stateObj.chulaVistaOnly != true) {
+                                                                this.props.updateParentState({clearSelection: false})
                                                             }
+                                                            this.handleClick(locationObj.id)
+                                                        }
 
 
                                                         }
 
                                                         onMouseEnter={() => {
                                                             this.setContent(locationObj.tooltip)
+                                                            setTimeout( () => {
+                                                                this.setContent("")
+                                                            }, 2000);
                                                         }}
                                                         onMouseLeave={() => {
                                                             this.setContent("")
@@ -233,37 +254,55 @@ class MapChartHeatmap extends Component {
                                                         style={{
                                                             default: cellStyle,
                                                             hover: cellStyleHover,
-                                                             // pressed: cellStyleHover
+                                                            // pressed: cellStyleHover
                                                         }}
 
 
                                                     />
 
+                                                    {locationObj.x &&
                                                     <Annotation
                                                         subject={locationObj.centerCoordinate}
-                                                        dx={0}
-                                                        dy={0}
+                                                        dx={locationObj.x}
+                                                        dy={locationObj.y}
                                                         connectorProps={{
-                                                            stroke: "black",
-                                                            strokeWidth: 2,
+                                                            stroke: "gray",
+                                                            strokeWidth: 1,
                                                             strokeLinecap: "round"
                                                         }}
                                                     >
-                                                        <text x="0" textAnchor="end" alignmentBaseline="middle" fill="black">
+                                                        <text className="zip-area-label" x="0"
+                                                              y={locationObj.y < 0 ? -4 : 8}
+                                                              x={locationObj.x < 0 ? -4 : 4}
+                                                              textAnchor=
+                                                                  {(() => {
+
+                                                                      if (locationObj.x > 0 && Math.abs(locationObj.y) < 30)
+                                                                          return "start"
+                                                                      else if (locationObj.x < 0 && Math.abs(locationObj.y) < 30)
+                                                                          return "end"
+                                                                      else
+                                                                          return "middle"
+
+                                                                  })()}
+                                                              alignmentBaseline="middle" fontSize="12"
+                                                              fill="gray">
                                                             {locationObj.zipCodeName}
                                                         </text>
                                                     </Annotation>
+                                                    }
                                                 </>
                                             );
 
 
 
-
-
-
                                         }
+
+
                                     })
                             }
+
+
 
                             {/*let cellStyle = geo.rsmKey == activeZip ? { fill: "#ff0000", stroke: "#ff0000", strokeWidth: 0.5, outline: 'none' } : { fill: "#666", stroke: "#FFF", strokeWidth: 0.5, outline: 'none' };*/}
 
