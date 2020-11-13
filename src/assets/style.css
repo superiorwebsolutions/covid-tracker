@@ -12,11 +12,17 @@
     margin-top: 20px;
     font-size:18px;
 }
-.clear-selection{
+.clear-selection-top{
     margin: auto;
     display: block;
-    margin-top:-20px;
     font-size:18px;
+    margin-bottom:20px;
+}
+.clear-section-bottom{
+    margin: auto;
+    display: block;
+    font-size:18px;
+    margin-top:-20px;
 }
 
 .showing-regions-text{
@@ -38,4 +44,9 @@ path{
 }
 .map-wrapper{
     margin-bottom: 50px;
+}
+CanvasJSChart{
+    padding-bottom:60px;
+    display:block;
+    clear:both;
 }

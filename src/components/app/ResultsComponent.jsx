@@ -34,6 +34,7 @@ class ResultsComponent extends Component {
             optionsDaily: {},
             optionsAverage: {},
             zipCodeMap: new Map(),
+            latestDate: null
 
         }
         this.refreshResults = this.refreshResults.bind(this)
@@ -44,6 +45,8 @@ class ResultsComponent extends Component {
         ServiceApi.getAllResults()
             .then(
                 (response) => {
+
+                    let latestDate = null
 
                     let allResultsOrig = response.data.features;
 
@@ -90,6 +93,9 @@ class ResultsComponent extends Component {
 
                             partialResults.push(data)
 
+                            if(latestDate == null)
+                                latestDate = updateDate
+
                             /*
                             if (objCountByDate.has(dateString)) {
                                 objCountByDate.set(dateString, objCountByDate.get(dateString) + caseCount)
@@ -106,12 +112,25 @@ class ResultsComponent extends Component {
 
                     // objCountByDate = new Map([...objCountByDate.entries()].sort())
 
-                    this.setState({allResults: partialResults})
+                    latestDate = dateFormat(latestDate, "yyyy/mm/dd");
+
+                    this.setState({
+                        allResults: partialResults,
+                        latestDate: latestDate
+                    })
 
                     this.refreshResults()
 
                 }
             )
+    }
+
+    getNumDays(){
+        let date1 = new Date(this.props.startDate)
+
+        let date2 = new Date(this.state.latestDate)
+        let diffTime = Math.abs(date2 - date1)
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) - 12;
     }
 
     updateZipCodesAllowed(zipCodesAllowed){
@@ -132,7 +151,7 @@ class ResultsComponent extends Component {
     refreshResults() {
 
 
-        let startDate1 = this.props.stateObj.startDate
+        let startDate1 = this.props.startDate
 
         let objCountByDate = new Map()
         let zipCodeByDate = new Map()
@@ -168,10 +187,9 @@ class ResultsComponent extends Component {
 
                 }
                 else{
-                     currentDate = new Date("August 01, 2020")
-                    // currentDate = startDate1
+                     // currentDate = new Date("August 01, 2020")
+                    currentDate = startDate1
                 }
-
 
                 let currentDateString = dateFormat(currentDate, "yyyy/mm/dd");
 
@@ -238,9 +256,13 @@ class ResultsComponent extends Component {
 
         }
 
-        // Delete first item of finalCountByDate
+        // Delete first item of finalCountByDate (because of bad data)
+
         finalCountByDate.delete(finalCountByDate.keys().next().value)
-        finalZipCountByDate.delete(finalCountByDate.keys().next().value)
+         finalZipCountByDate.delete(finalZipCountByDate.keys().next().value)
+
+        // let keys = Array.from(finalZipCountByDate.keys()).slice(0, 1);
+        // keys.forEach(k => finalZipCountByDate.delete(k));
 
         let finalCountByDateAverage = new Map()
 
@@ -281,12 +303,15 @@ class ResultsComponent extends Component {
 
 
 
-        let startDate = new Date()
-        startDate.setDate(startDate.getDate() - 9)
+        // let startDate = new Date()
+        // startDate.setDate(startDate.getDate() - 9)
+        // startDate = dateFormat(startDate, "yyyy/mm/dd")
+
+        let startDate = startDate1
         startDate = dateFormat(startDate, "yyyy/mm/dd")
-        let endDate = new Date()
-        endDate.setDate(endDate.getDate() - 2)
-        endDate = dateFormat(endDate, "yyyy/mm/dd")
+
+
+        let endDate = this.state.latestDate
 
         // let startDate = this.props.stateObj.startDate
         // let endDate =  new Date()
@@ -306,7 +331,7 @@ class ResultsComponent extends Component {
 
         let dateRangeArray = getDaysArray(new Date(startDate), new Date(endDate));
 
-        let dateRangeLength = dateRangeArray.length
+        let dateRangeLength = this.getNumDays()
 
 
 
@@ -479,12 +504,14 @@ class ResultsComponent extends Component {
 
         const options_weekly = {
             animationEnabled: true,
-
+/*
             title:{
                 text: "Cases per week",
                 fontSize: 22
 
             },
+
+ */
             axisY2: {
                 labelFontSize: 18
             },
@@ -509,10 +536,13 @@ class ResultsComponent extends Component {
 
         const options_average = {
             animationEnabled: true,
+            /*
             title:{
                 text: "Cases per day (average)",
                 fontSize: 22
             },
+
+             */
             axisY2: {
                 labelFontSize: 18
             },
@@ -537,6 +567,7 @@ class ResultsComponent extends Component {
 
         const options_daily = {
             animationEnabled: true,
+            /*
             title:{
                 text: "Cases per capita (100k)",
                 fontSize: 22
@@ -544,6 +575,8 @@ class ResultsComponent extends Component {
             subtitles: [{
                 text: "Purple Tier restrictions (>7 per 100k)"
             }],
+
+             */
             axisY2: {
                 labelFontSize: 18
             },
@@ -577,29 +610,28 @@ class ResultsComponent extends Component {
 
 
 
-
         dateRangeArray.forEach((date) => {
             let dateFormatted = dateFormat(date, "yyyy/mm/dd")
 
-            if(finalZipCountByDate.has(dateFormatted)) {
+            if (finalZipCountByDate.has(dateFormatted)) {
+
                 let singleDayMap = finalZipCountByDate.get(dateFormatted)
 
                 singleDayMap.forEach((caseCount, zipCode) => {
 
                     if (zipCodeMap.has(zipCode)) {
                         let prevSingleZipCount = zipCodeMap.get(zipCode)
+                        if(!prevSingleZipCount)
+                            prevSingleZipCount = 0
 
-                        zipCodeMap.set(zipCode, parseInt(caseCount) + parseInt(prevSingleZipCount))
+                        zipCodeMap.set(zipCode, (caseCount) + (prevSingleZipCount))
                     } else {
-                        zipCodeMap.set(zipCode, parseInt(caseCount))
+                        zipCodeMap.set(zipCode, (caseCount))
                     }
 
 
                 })
             }
-
-
-
         })
 
 
@@ -621,7 +653,7 @@ class ResultsComponent extends Component {
         this.refreshResults()
     }
     componentDidUpdate(prevProps, prevState){
-        if(prevProps.stateObj != this.props.stateObj) {
+        if(prevProps.stateObj != this.props.stateObj || prevProps.startDate != this.props.startDate) {
             this.refreshResults()
         }
 
@@ -661,8 +693,18 @@ class ResultsComponent extends Component {
 
                 <br />
                 <div className="map-wrapper">
-                    <h5>Current Risk (per capita, past {this.state.dateRangeArray.length} days)</h5>
-                        <h6 className="showing-regions-text">{showingRegionsText}</h6>
+                    <h4>Current Risk <small>(showing past {this.getNumDays()} days)</small></h4>
+                        <h5 className="showing-regions-text">{showingRegionsText}</h5>
+
+                        {this.props.singleZip.length > 0 &&
+
+                        <Button variant="primary" className="clear-selection-top" onClick={() => {
+                            this.props.updateClearSelection(true)
+                        }}>Clear selection</Button>
+
+                        }
+
+
                         <MapChartHeatmap stateObj={this.props.stateObj} singleZip={this.props.stateObj.singleZip} chulaVistaPopulations={this.props.stateObj.chulaVistaPopulations}
                         associatedPopulationsObj={this.props.stateObj.associatedPopulationsObj} dateRangeArray={this.state.dateRangeArray} zipCodeMap={this.state.zipCodeMap}
                         finalZipCountByDate={this.state.finalZipCountByDate} zipCodesAllowed={this.props.zipCodesAllowed}
@@ -680,22 +722,36 @@ class ResultsComponent extends Component {
                         />
 
 
-                    {this.props.stateObj.singleZip.length > 0 &&
+                    {this.props.singleZip.length > 0 &&
 
-                        <Button variant="secondary" className="clear-selection" onClick={() => {
+                        <Button variant="primary" className="clear-selection-bottom" onClick={() => {
                         this.props.updateClearSelection(true)
                     }}>Clear selection</Button>
 
                     }
+                    <h5>(Select a region above to filter results)</h5>
                 </div>
+
+                <hr />
+                <br />
 
 
                 <div className="contributionChart">
+                    <h5>Cases Per Week <small>(highlighted regions only)</small></h5>
                     <CanvasJSChart options={this.state.optionsWeekly} />
                     <br />
+                    <h5>Cases Per Day, average <small>(highlighted regions only)</small></h5>
                     <CanvasJSChart options={this.state.optionsAverage} />
-                    <br />
-                    <CanvasJSChart options={this.state.optionsDaily} />
+
+
+                    {this.getNumDays() > 20 &&
+                        <>
+                            <br />
+                            <h5>Cases Per Capita (100k) <small>(highlighted regions only)</small></h5>
+                            <small>Purple Tier restrictions (>7 per 100k)</small>
+                            <CanvasJSChart options={this.state.optionsDaily} />
+                        </>
+                    }
                 </div>
 
                 <br /> <br /> <br />

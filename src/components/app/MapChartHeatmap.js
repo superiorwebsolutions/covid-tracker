@@ -130,13 +130,13 @@ class MapChartHeatmap extends Component {
                 <ReactTooltip>{this.state.content}</ReactTooltip>
 
                 <ComposableMap data-tip="" projection="geoAlbersUsa" projectionConfig={{scale: 120000}}
-                               width={980}
-                               height={551}
+                               width={600}
+                               height={490}
                                style={{
                                    width: "100%",
                                    height: "auto",
                                }}>
-                    <ZoomableGroup center={[-117.192289, 32.769248]} zoom={1} minZoom={1} maxZoom={1} disablePanning>
+                    <ZoomableGroup center={[-117.155, 32.769248]} zoom={1} minZoom={1} maxZoom={1} disablePanning>
 
                         <Geographies geography="./zipcodes.geojson">
                             {
@@ -166,6 +166,7 @@ class MapChartHeatmap extends Component {
 
 
                                             caseCount = this.props.zipCodeMap.get(geoZip)
+
                                             caseCountPerCapita100k = ((caseCount / associatedPopulationsObj[geoZip]) * 100000) / numDays
 
 

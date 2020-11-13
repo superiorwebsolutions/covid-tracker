@@ -15,6 +15,8 @@ let CanvasJSChart = CanvasJSReact.CanvasJSChart;
 // var CanvasJS = CanvasJSReact.CanvasJS;
 // var CanvasJSChart = CanvasJSReact.CanvasJSChart;
 
+const dateFormat = require('dateformat');
+
 
 class MainApp extends Component{
 
@@ -27,8 +29,8 @@ class MainApp extends Component{
             finalPerCapitaByDate: new Map(),
             finalPerCapitaByDateAverage: new Map(),
             finalCountByWeekAverage: new Map(),
-            startDate: new Date("August 01, 2020"),
-            // Not including anything north of sorrento valley
+            startDate: dateFormat(new Date("2020/08/01"), "yyyy/mm/dd"),
+
             zipCodesAllowed: [
                 "92037",
                 "92121",
@@ -117,7 +119,7 @@ class MainApp extends Component{
 
             },
             zipCodeCoordinates: {
-                92037: {lat: 32.8283259, long: -117.255854, x: -80, y: -20},
+                92037: {lat: 32.8283259, long: -117.255854, x: -60, y: -20},
                 92121: {lat: 32.8981142, long: -117.2029363, x: 50, y: -10},
                 92122: {lat: 32.8563846, long: -117.2029363, x:-33, y: -42},
                 92117: {lat: 32.8250767, long: -117.2029363, x: 90, y: -60},
@@ -125,9 +127,9 @@ class MainApp extends Component{
                 92123: {lat: 32.8102534, long: -117.1323579, x: 15, y: -69},
                 92124: {lat: 32.8250787, long: -117.091176, x: 70, y: -40},
                 92120: {lat: 32.7926264, long: -117.0735241, x: 60, y: -20},
-                92109: {lat: 32.7920948, long: -117.2323367, x: -80, y: -20},
+                92109: {lat: 32.7920948, long: -117.2323367, x: -55, y: -20},
                 92108: {lat: 32.7742488, long: -117.1411815},  // mission valley
-                92107: {lat: 32.7409782, long: -117.2499749, x: -80, y: -20},
+                92107: {lat: 32.7409782, long: -117.2499749, x: -25, y: -10},
                 92110: {lat: 32.7657318, long: -117.199996, x: -120, y: -20},
                 92103: {lat: 32.749789, long: -117.1676501, x: -70, y: 80}, // hillcrest
                 92116: {lat: 32.7679176, long: -117.1235339, x:130, y: 10},
@@ -166,7 +168,7 @@ class MainApp extends Component{
         this.updateState = this.updateState.bind(this)
         this.handleStateObj = this.handleStateObj.bind(this)
         this.updateClearSelection = this.updateClearSelection.bind(this)
-
+        this.setStartDate = this.setStartDate.bind(this)
 
 
 
@@ -186,6 +188,10 @@ class MainApp extends Component{
         this.setState({singleZip: []})
     }
 
+    setStartDate(startDate){
+        this.setState({startDate: startDate})
+    }
+
 
 
 
@@ -203,11 +209,11 @@ class MainApp extends Component{
                 <div className="container">
 
 
-                    <FilterComponent startDate={this.state.startDate} handleStateObj={this.handleStateObj}></FilterComponent>
+                    <FilterComponent setStartDate={this.setStartDate} startDate={this.state.startDate} handleStateObj={this.handleStateObj}></FilterComponent>
 
                     <div className="clearfix"></div>
 
-                    <ResultsComponent singleZip={this.state.singleZip} stateObj={this.state} zipCodesAllowed={this.state.zipCodesAllowed} updateClearSelection={this.updateClearSelection} updateState={this.updateState}></ResultsComponent>
+                    <ResultsComponent startDate={this.state.startDate} singleZip={this.state.singleZip} stateObj={this.state} zipCodesAllowed={this.state.zipCodesAllowed} updateClearSelection={this.updateClearSelection} updateState={this.updateState}></ResultsComponent>
 
 
                     <br />

@@ -27,9 +27,14 @@ class FilterComponent extends Component{
         this.props.handleStateObj({filter: booleanVal});
     }
     loadMore(booleanVal){
-        booleanVal = booleanVal || false
-        this.setState({showLoadButton: false})
-        this.props.handleStateObj({loadMore: booleanVal});
+        let startDate = new Date("2020/06/06")
+        startDate = dateFormat(startDate, "yyyy/mm/dd")
+        console.log(startDate)
+        this.props.setStartDate(startDate)
+        //
+        // booleanVal = booleanVal || false
+        // this.setState({showLoadButton: true})
+        // this.props.handleStateObj({loadMore: booleanVal});
     }
 
     resetChart(){
@@ -39,10 +44,11 @@ class FilterComponent extends Component{
     }
     setStartDate(daysAgo){
         let startDate = new Date()
-        startDate.setDate(startDate.getDate() - daysAgo - 2)
+        // Need to subtract 12 to adjust for data
+        startDate.setDate(startDate.getDate() - daysAgo - 12)
         startDate = dateFormat(startDate, "yyyy/mm/dd")
-        // this.setState({: false})
-        this.props.handleStateObj({startDate: startDate})
+        console.log(startDate)
+        this.props.setStartDate(startDate)
 
     }
     chulaVistaOnly(){
@@ -74,7 +80,7 @@ class FilterComponent extends Component{
 
                     <Button variant="secondary" className="show-pb" onClick={() => {this.setStartDate(7)}}>Show past week</Button>
 
-                    { this.state.showLoadButton ? <Button variant="primary" className="show-pb" onClick={() => {this.loadMore(true)}}>Show all dates</Button> : null }
+                    { this.state.showLoadButton ? <Button variant="primary" className="show-pb" onClick={() => {this.loadMore(true)}}>Show all time</Button> : null }
 
                     { this.state.showPbButton || this.state.showLoadButton ? null : <Button variant="secondary" className="show-pb" onClick={this.resetChart}>Reset Graphs</Button> }
 
