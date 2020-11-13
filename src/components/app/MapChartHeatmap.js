@@ -137,7 +137,7 @@ class MapChartHeatmap extends Component {
                 }}
 
                                width={600}
-                               height={490}
+                               height={400}
                                style={{
                                    width: "100%",
                                    height: "auto",

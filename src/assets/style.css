@@ -55,6 +55,7 @@ CanvasJSChart{
 }
 .graphs-below{
     margin-bottom:25px;
+    font-weight:bold;
 }
   .content{
       width: 80%;

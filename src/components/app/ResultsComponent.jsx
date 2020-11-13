@@ -706,16 +706,17 @@ class ResultsComponent extends Component {
             <>
 
 
-                <br />
                 <div className="map-wrapper">
                     {/*<h4>Current Risk <small>(showing past {this.getNumDays()} days)</small></h4>*/}
 
+
+                    <h5 className="showing-regions-text">{showingRegionsText}</h5>
 
                         {this.props.singleZip.length > 0 &&
 
                         <Button variant="primary" className="clear-selection-top" onClick={() => {
                             this.props.updateClearSelection(true)
-                        }}>Select All</Button>
+                        }}>Select All Regions</Button>
 
                         }
 
@@ -737,7 +738,7 @@ class ResultsComponent extends Component {
                         />
 
 
-                    <h5 className="showing-regions-text">{showingRegionsText}</h5>
+
                     <h5>(Select regions above to filter results)</h5>
                 </div>
 
