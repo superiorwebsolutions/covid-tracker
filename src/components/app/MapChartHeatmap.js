@@ -212,9 +212,19 @@ class MapChartHeatmap extends Component {
                                             // let longStart = coords[0][0][0][1]
                                             // let longEnd = coords[0][0][halfwayInt][1]
 
+                                            let x
+                                            let y
+                                            let centerCoordinate
+
                                             if(this.props.stateObj.chulaVistaOnly) {
-                                                this.props.stateObj.zipCodeCoordinates[geoZip].x = 0
-                                                this.props.stateObj.zipCodeCoordinates[geoZip].y = 0
+                                                x = 0
+                                                y = 0
+                                                centerCoordinate = null
+                                            }
+                                            else{
+                                                x =this.props.stateObj.zipCodeCoordinates[geoZip].x
+                                                y = this.props.stateObj.zipCodeCoordinates[geoZip].y
+                                                centerCoordinate = [this.props.stateObj.zipCodeCoordinates[geoZip].long, this.props.stateObj.zipCodeCoordinates[geoZip].lat]
                                             }
 
                                             locationObj = {
@@ -223,10 +233,10 @@ class MapChartHeatmap extends Component {
                                                 cases: caseCount,
                                                 zipCodeName: zipCodeName,
                                                 tooltip: tooltipText,
-                                                centerCoordinate: [this.props.stateObj.zipCodeCoordinates[geoZip].long, this.props.stateObj.zipCodeCoordinates[geoZip].lat],
+                                                centerCoordinate: centerCoordinate,
 
-                                                x: this.props.stateObj.zipCodeCoordinates[geoZip].x,
-                                                y: this.props.stateObj.zipCodeCoordinates[geoZip].y
+                                                x: x,
+                                                y: y
 
                                             }
 

@@ -57,6 +57,10 @@ class MainApp extends Component{
                 "92113",
                 "92136",
 
+                "91910",
+            "91911",
+            "91913"
+
             ],
             associatedPopulationsObj: {
                 92037: 41031,
@@ -151,7 +155,7 @@ class MainApp extends Component{
 
 
             },
-            chulaVistaOnly: false,
+
             chulaVistaPopulations: {
                 91910: 77369,
                 91911: 85259,
@@ -160,7 +164,9 @@ class MainApp extends Component{
             filter: false,
             loadMore: false,
             clearSelection: false,
-            singleZip: []
+            singleZip: [],
+
+            chulaVistaOnly: false,
 
 
         }
@@ -182,7 +188,6 @@ class MainApp extends Component{
 
     updateState(newState){
         this.setState(newState)
-         console.log(this.state)
     }
     updateClearSelection(){
         this.setState({singleZip: []})
@@ -215,7 +220,7 @@ class MainApp extends Component{
 
                     <div className="clearfix"></div>
 
-                    <ResultsComponent startDate={this.state.startDate} singleZip={this.state.singleZip} stateObj={this.state} zipCodesAllowed={this.state.zipCodesAllowed} updateClearSelection={this.updateClearSelection} updateState={this.updateState}></ResultsComponent>
+                    <ResultsComponent chulaVistaOnly={this.state.chulaVistaOnly} startDate={this.state.startDate} singleZip={this.state.singleZip} stateObj={this.state} zipCodesAllowed={this.state.zipCodesAllowed} updateClearSelection={this.updateClearSelection} updateState={this.updateState}></ResultsComponent>
 
 
                     <br />

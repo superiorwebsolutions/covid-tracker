@@ -157,7 +157,14 @@ class ResultsComponent extends Component {
         let zipCodeByDate = new Map()
 
         let zipCodesAllowed = this.props.zipCodesAllowed
-        let associatedPopulationsObj = this.props.stateObj.associatedPopulationsObj
+
+        let associatedPopulationsObj
+
+        if(this.props.stateObj.chulaVistaOnly === true)
+            associatedPopulationsObj = this.props.stateObj.chulaVistaPopulations
+        else
+            associatedPopulationsObj = this.props.stateObj.associatedPopulationsObj
+
 
         for (let result of this.state.allResults) {
 
@@ -180,7 +187,10 @@ class ResultsComponent extends Component {
             // let date = new Date(updateDate.slice(0, updateDate.indexOf(' ')))
             // let dateString = date.getFullYear() + "/" + date.getMonth() + "/" + date.getDate()
 
+
+
             if (associatedPopulationsObj[zipCode] != null) {
+
                 let currentDate
                 if (this.props.stateObj.loadMore == true) {
                     currentDate = new Date("June 06, 2020")
@@ -353,7 +363,8 @@ class ResultsComponent extends Component {
             })
         }
         else {
-            this.props.stateObj.zipCodesAllowed.forEach((zipCode) => {
+            console.log('hit')
+            Object.keys(this.props.stateObj.associatedPopulationsObj).forEach(( zipCode) => {
                 // If chula vista zip codes should not be included, do not include in population total
                 populationTotal += this.props.stateObj.associatedPopulationsObj[zipCode]
             })
@@ -388,7 +399,7 @@ class ResultsComponent extends Component {
 
         });
 
-        let reversedMap = new Map([...finalCountByDate]);
+        let reversedMap = new Map([...finalCountByDateAverage]);
 
         reversedMap.forEach((value, key) => {
             var keys = key.split('.'),
@@ -727,7 +738,7 @@ class ResultsComponent extends Component {
 
 
                     <h5 className="showing-regions-text">{showingRegionsText}</h5>
-                    <h5>(Select region(s) above to filter results)</h5>
+                    <h5>(Select regions above to filter results)</h5>
                 </div>
 
                 <hr />
