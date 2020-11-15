@@ -206,6 +206,7 @@ class MainApp extends Component{
 
 
     render(){
+        // temp comment
         console.log("render MainApp")
         console.log(this.state)
         return(
