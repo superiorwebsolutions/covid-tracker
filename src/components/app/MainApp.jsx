@@ -31,37 +31,6 @@ class MainApp extends Component{
             finalCountByWeekAverage: new Map(),
             startDate: dateFormat(new Date("2020/08/01"), "yyyy/mm/dd"),
 
-            zipCodesAllowed: [
-                "92037",
-                "92121",
-                "92122",
-                "92117",
-                "92111",
-                "92123",
-                "92124",
-                "92120",
-                "92109",
-                "92108",
-                "92107",
-                "92110",
-                "92103",
-                "92116",
-                "92115",
-                "92182",
-                "92106",
-                "92140",
-                "92104",
-                "92105",
-                "92101",
-                "92102",
-                "92113",
-                "92136",
-
-                "91910",
-                "91911",
-                "91913"
-
-            ],
             associatedPopulationsObj: {
                 92037: 41031,
                 92121: 4529,
@@ -87,8 +56,6 @@ class MainApp extends Component{
                 92102: 44545,
                 92113: 53688,
                 92136: 10699,
-
-
 
             },
             zipCodeNames: {

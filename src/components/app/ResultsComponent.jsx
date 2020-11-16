@@ -2,17 +2,9 @@ import React, { useState, useEffect, Component} from "react";
 
 import ServiceApi from "../../services/ServiceApi";
 
-import {Button, Table} from 'react-bootstrap';
-
 import CanvasJSReact from "./canvasjs.react";
 
-
-import {ComposableMap, Geographies, Geography, ZoomableGroup} from "react-simple-maps";
-
-import ReactTooltip from 'react-tooltip'
-
-import { scaleQuantize } from "d3-scale";
-import { csv } from "d3-fetch";
+import {stripLines} from "../../Constants";
 
 import MapChartHeatmap from "./MapChartHeatmap";
 
@@ -26,7 +18,7 @@ class ResultsComponent extends Component {
         super(props);
 
         this.state = {
-            dateRangeArray: [],
+            // dateRangeArray: [],
             finalZipCountByDate: new Map(),
             optionsWeekly: {},
             optionsDaily: {},
@@ -37,6 +29,8 @@ class ResultsComponent extends Component {
 
         this.allResults = new Map()
         this.latestDate = null
+
+
 
         this.refreshResults = this.refreshResults.bind(this)
         this.updateSingleZip = this.updateSingleZip.bind(this)
@@ -77,15 +71,13 @@ class ResultsComponent extends Component {
                             partialResults.push(data)
 
                             if(latestDate == null)
-                                latestDate = updateDate
+                                this.latestDate = dateFormat(updateDate, "yyyy/mm/dd");
 
                         }
                     }
 
-                    latestDate = dateFormat(latestDate, "yyyy/mm/dd");
 
                     this.allResults = partialResults
-                    this.latestDate = latestDate
 
                     // this.setState({
                     //     allResults: partialResults,
@@ -119,10 +111,9 @@ class ResultsComponent extends Component {
 
     refreshResults() {
 
+        let startDate = this.props.startDate
+        startDate = dateFormat(startDate, "yyyy/mm/dd")
 
-        let startDate1 = this.props.startDate
-
-        let objCountByDate = new Map()
         let zipCodeByDate = new Map()
 
         let associatedPopulationsObj
@@ -133,6 +124,7 @@ class ResultsComponent extends Component {
             associatedPopulationsObj = this.props.associatedPopulationsObj
 
 
+        let latestDate = null
         for (let result of this.allResults) {
 
             let data2 = result
@@ -146,13 +138,9 @@ class ResultsComponent extends Component {
 
             let caseCount = data2.case_count
 
-            let caseCountString = caseCount.toString()
-
             let updateDate = data2.updatedate
             let dateString = updateDate.slice(0, updateDate.indexOf(' '))
 
-            // let date = new Date(updateDate.slice(0, updateDate.indexOf(' ')))
-            // let dateString = date.getFullYear() + "/" + date.getMonth() + "/" + date.getDate()
 
 
 
@@ -161,105 +149,120 @@ class ResultsComponent extends Component {
                 let currentDate
                 if (this.props.loadMore == true) {
                     currentDate = new Date("June 06, 2020")
-
                 }
                 else{
-                     // currentDate = new Date("August 01, 2020")
-                    currentDate = startDate1
+                    currentDate = startDate
                 }
 
-                let currentDateString = dateFormat(currentDate, "yyyy/mm/dd");
-
-                // Only show results after cutoff date
-                if (currentDateString >= dateString) {
+                // Only show results more recent than cutoff date
+                if (currentDate >= dateString)
                     continue
-                }
 
-                if (objCountByDate.has(dateString)) {
-                    objCountByDate.set(dateString, objCountByDate.get(dateString) + caseCount)
+                if (zipCodeByDate.has(dateString)) {
 
                     zipCodeByDate.get(dateString).set(zipCode, caseCount)
 
                 } else {
-                    objCountByDate.set(dateString, caseCount)
 
                     let newMap = new Map()
+
                     newMap.set(zipCode, caseCount)
 
                     zipCodeByDate.set(dateString, newMap)
                 }
             }
+
+            if(latestDate == null)
+                latestDate = dateString
+
+
         }
 
-        objCountByDate = new Map([...objCountByDate.entries()].sort())
+        this.latestDate = latestDate
+
         zipCodeByDate = new Map([...zipCodeByDate.entries()].sort())
-
-
 
         let finalCountByDate = new Map()
         let finalZipCountByDate = new Map()
         let finalCountByWeekAverage = new Map()
 
-        // TRAVERSE objCountByDate and compare totals to one day prior
+        let zipCodeMap = new Map()
+
+        // Traverse zipCodeByDate and compare total counts to one day prior
         let prevDayCount = 0
         let prevDayMap = new Map()
+        let finalCountByDateAverage = new Map()
+        let queue = []
+        let finalCountByDateLength = zipCodeByDate.size
+        let runningAverageNumDays = false
 
-        for (let [dateString, singleDayMap] of zipCodeByDate) {
+        // Allows for exact accuracy if report is only showing 7 days or less
+        if(this.getNumDays() < 8)
+            runningAverageNumDays = 1
+
+        let index = 0
+        zipCodeByDate.forEach(( singleDayMap, dateString) => {
+            index++
+
             let totalCount = 0
             let tempMap = new Map()
 
+            // Traverse each individual day in zipCodeByDate, in order to calculate totalCount per day
             for (let [zipCode, singleZipCount] of singleDayMap) {
                 let prevDaySingleZipCount = 0
-                if(prevDayMap.size != 0){
+
+                if(prevDayMap.size != 0)
                     prevDaySingleZipCount = prevDayMap.get(zipCode)
-                }
-                tempMap.set(zipCode, singleZipCount - prevDaySingleZipCount)
+
+                let currentDayCountZipCode = singleZipCount - prevDaySingleZipCount
+
+                // Some data is corrupt, set those as zero
+                if(currentDayCountZipCode < 0)
+                    currentDayCountZipCode = 0
+
+                tempMap.set(zipCode, currentDayCountZipCode)
 
                 totalCount += singleZipCount
 
             }
 
-            finalZipCountByDate.set(dateString, tempMap)
+            let currentDayCount = totalCount - prevDayCount
 
-            finalCountByDate.set(dateString, totalCount - prevDayCount)
+            // Some data is corrupt, set those as zero
+            if(currentDayCount < 0)
+                currentDayCount = 0
+
+            finalCountByDate.set(dateString, currentDayCount)
+
+            if(index > 10) {
+
+                finalZipCountByDate.set(dateString, tempMap)
+
+                // Populate zipCodeMap
+                let singleDayMap = finalZipCountByDate.get(dateString)
+
+                singleDayMap.forEach((caseCount, zipCode) => {
+
+                    if (zipCodeMap.has(zipCode)) {
+                        let prevSingleZipCount = zipCodeMap.get(zipCode)
+                        if (!prevSingleZipCount)
+                            prevSingleZipCount = 0
+
+                        zipCodeMap.set(zipCode, (caseCount) + (prevSingleZipCount))
+                    } else {
+                        zipCodeMap.set(zipCode, (caseCount))
+                    }
+                })
+            }
 
 
-            // finalZipCodeByDateAverage.get(dateString).get()
+            // Populate finalCountByDateAverage
 
 
-            prevDayCount = totalCount
-            prevDayMap = singleDayMap
+            queue.push(currentDayCount)
 
-
-        }
-
-        // Delete first item of finalCountByDate (because of bad data)
-
-        finalCountByDate.delete(finalCountByDate.keys().next().value)
-         finalZipCountByDate.delete(finalZipCountByDate.keys().next().value)
-
-        // let keys = Array.from(finalZipCountByDate.keys()).slice(0, 1);
-        // keys.forEach(k => finalZipCountByDate.delete(k));
-
-        let finalCountByDateAverage = new Map()
-
-        let queue = []
-        let finalCountByDateLength = finalCountByDate.size
-
-
-        // TODO:  Move finalZipCountByDate to average below
-
-        let runningAverageNumDays = null
-        if(this.getNumDays() < 8)
-            runningAverageNumDays = 1
-
-        let i = 0
-        for (let [dateString, result] of finalCountByDate) {
-            i++
-            queue.push(result)
-
-            if(i > finalCountByDateLength - 5){
-
+            // If index is within 5 most recent dates, change to 3-day average (from 10-day average)
+            if(index > finalCountByDateLength - 5){
                 while(queue.length > (runningAverageNumDays ? runningAverageNumDays : 3))
                     queue.shift()
             }
@@ -268,56 +271,32 @@ class ResultsComponent extends Component {
                     queue.shift()
             }
 
-
-
             let average = 0
             for (let value of queue) {
                 average += value
             }
             average /= queue.length
 
-            finalCountByDateAverage.set(dateString, average)
-
-
-        }
+            // if(index >= 11)
+                finalCountByDateAverage.set(dateString, average)
 
 
 
 
-        // let startDate = new Date()
-        // startDate.setDate(startDate.getDate() - 9)
-        // startDate = dateFormat(startDate, "yyyy/mm/dd")
+            prevDayCount = totalCount
+            prevDayMap = singleDayMap
+        })
 
-        let startDate = startDate1
-        startDate = dateFormat(startDate, "yyyy/mm/dd")
+        console.log(finalZipCountByDate)
 
-
-        let endDate = this.latestDate
-
-        // let startDate = this.props.startDate
-        // let endDate =  new Date()
-        // endDate.setDate(endDate.getDate() - 2)
-        // endDate = dateFormat(endDate, "yyyy/mm/dd")
-
-        let zipCodeMap = new Map()
-
-        let getDaysArray = function(start, end) {
-            let arr
-            let dt
-            for(arr=[], dt=new Date(start); dt<=end; dt.setDate(dt.getDate()+1)){
-                arr.push(new Date(dt));
-            }
-            return arr;
-        };
-
-        let dateRangeArray = getDaysArray(new Date(startDate), new Date(endDate));
-
+        // Delete first item of finalCountByDate (because of bad data).  No longer needed
+        // finalCountByDate.delete(finalCountByDate.keys().next().value)
+        // finalZipCountByDate.delete(finalZipCountByDate.keys().next().value)
 
         let dataPointsArrayAverage = []
         let dataPointsArray = []
         let dataPointsArrayWeekly= []
         let dataPointsArrayPerCapita = []
-
 
         let populationTotal = 0
 
@@ -327,58 +306,37 @@ class ResultsComponent extends Component {
             })
         }
         else {
-            console.log('hit')
             Object.keys(this.props.associatedPopulationsObj).forEach(( zipCode) => {
                 // If chula vista zip codes should not be included, do not include in population total
                 populationTotal += this.props.associatedPopulationsObj[zipCode]
             })
         }
 
-        let object = {}
-
-        let objectAverage = {}
-
-        let objectWeekly = {}
-
         let reversedMapAverage = new Map([...finalCountByDateAverage]);
-
-        let count1 = 0
         reversedMapAverage.forEach((value, key) => {
-            value = Math.round(value)
-            count1++
 
-            var keys = key.split('.'),
-                last = keys.pop();
-            keys.reduce((r, a) => r[a] = r[a] || {}, objectAverage)[last] = value;
+            if(value == null)
+                value = 0
+            else
+                value = Math.round(value)
 
-            if(value >= 0) {
-
-                dataPointsArrayAverage.push({x: new Date(key), y: value})
-
-
-
-
-            }
+            dataPointsArrayAverage.push({x: new Date(key), y: value})
 
         });
 
         let reversedMap = new Map([...finalCountByDateAverage]);
-
         reversedMap.forEach((value, key) => {
-            var keys = key.split('.'),
-                last = keys.pop();
-            keys.reduce((r, a) => r[a] = r[a] || {}, object)[last] = value;
 
-            if(value >= 0) {
-                dataPointsArray.push({x: new Date(key), y: value})
+            if(value == null)
+                value = 0
 
-                dataPointsArrayPerCapita.push({x: new Date(key), y: Math.round((value / populationTotal) * 100000)})
+            dataPointsArray.push({x: new Date(key), y: value})
 
+            let perCapita = Math.round((value / populationTotal) * 100000)
 
-            }
+            dataPointsArrayPerCapita.push({x: new Date(key), y: perCapita})
 
         });
-
 
 
         let reversedMapWeekly = new Map([...finalCountByDate].reverse());
@@ -394,10 +352,8 @@ class ResultsComponent extends Component {
         let xCount = 0;
         reversedMapWeekly.forEach((value, key) => {
 
-            if(totalCases == 0){
+            if(totalCases == 0)
                 prevDateString = key
-            }
-
 
             count++
             totalCases += value
@@ -408,9 +364,6 @@ class ResultsComponent extends Component {
 
                 totalCases = 0
             }
-
-
-
         });
 
         dataPointsArray.splice(0,10)
@@ -421,77 +374,13 @@ class ResultsComponent extends Component {
 
         // dataPointsArrayWeekly.splice(-1,1)
 
-        let stripLines = [{
-            startValue: new Date("2020/06/12"),
-            endValue: new Date("2020/07/01"),
-            label: "Bars open",
-            labelFontSize: 24,
-            labelAlign: "far",
-            opacity: .8,
-            color:"transparent",
-            labelFontColor: "#f44336",
-            showOnTop: true,
-            labelBackgroundColor: "white",
-            labelMaxWidth: 500,
-        },{
-            startValue: new Date("2020/08/20"),
-            endValue: new Date("2020/09/08"),
-            label: "SDSU begins",
-            labelFontSize: 24,
-            labelAlign: "far",
-            opacity: .6,
-            color:"transparent",
-            labelFontColor: "#f44336",
-            showOnTop: true,
-            labelBackgroundColor: "white",
-            labelMaxWidth: 1000,
 
-        },{
-            startValue: new Date("2020/10/30"),
-            endValue: new Date("2020/11/6"),
-            label: "Halloween",
-            labelFontSize: 24,
-            labelAlign: "far",
-            opacity: .6,
-            color:"transparent",
-            labelFontColor: "#f44336",
-            showOnTop: true,
-            labelBackgroundColor: "white",
-            labelMaxWidth: 1000,
-
-        },{
-            startValue: new Date("2020/11/25"),
-            endValue: new Date("2020/11/30"),
-            // label: "Thanksgiving",
-            labelFontSize: 24,
-            labelAlign: "center",
-            opacity: .4,
-            color:"transparent",
-            labelFontColor: "#f44336",
-            showOnTop: true,
-            labelBackgroundColor: "white",
-            labelMaxWidth: 1000,
-
-        }
-        ]
-
-
-
-
-
-
-        const options_weekly = {
+        let options_weekly = {
             animationEnabled: true,
-/*
-            title:{
-                text: "Cases per week",
-                fontSize: 22
-
-            },
-
- */
             axisY2: {
-                labelFontSize: 18
+                labelFontSize: 18,
+                minimum: 0,
+                // maximum: 1250
             },
             axisX: {
                 valueFormatString: "M/D",
@@ -507,22 +396,16 @@ class ResultsComponent extends Component {
                 indexLabelFontColor: "darkSlateGray",
                 indexLabelPlacement: "outside",
                 yValueFormatString: "#",
-                xValueFormatString: "MMM D, YYYY (DDDD)",
+                xValueFormatString: "MMM D (DDDD)",
                 dataPoints: dataPointsArrayWeekly
             }]
         }
 
-        const options_average = {
+        let options_average = {
             animationEnabled: true,
-            /*
-            title:{
-                text: "Cases per day (average)",
-                fontSize: 22
-            },
-
-             */
             axisY2: {
-                labelFontSize: 18
+                labelFontSize: 18,
+                minimum: 0
             },
             axisX: {
                 // interval: 7,
@@ -536,27 +419,26 @@ class ResultsComponent extends Component {
                 // indexLabelFontColor: "darkSlateGray",
                 // indexLabelPlacement: "outside",
                 yValueFormatString: "#",
-                xValueFormatString: "MMM D, YYYY (DDDD)",
+                xValueFormatString: "MMM D (DDDD)",
                 type: "spline",
                 dataPoints: dataPointsArrayAverage
                 // dataPoints: dataPointsArray
             }]
         }
 
-        const options_daily = {
+        let options_daily = {
             animationEnabled: true,
-            /*
-            title:{
-                text: "Cases per capita (100k)",
-                fontSize: 22
-            },
-            subtitles: [{
-                text: "Purple Tier restrictions (>7 per 100k)"
-            }],
-
-             */
             axisY2: {
-                labelFontSize: 18
+                labelFontSize: 18,
+                minimum: 0,
+                stripLines:[
+                    {
+                        startValue:7.9,
+                        endValue:8.1,
+                        color:"#b34b4b",
+                        // labelBackgroundColor: "transparent",
+                    }
+                ]
             },
             axisX: {
                 valueFormatString: "M/D"
@@ -565,7 +447,7 @@ class ResultsComponent extends Component {
                 axisYType: "secondary",
                 axisYIndex: 0, //defaults to 0
                 yValueFormatString: "#",
-                xValueFormatString: "MMM D, YYYY (DDDD)",
+                xValueFormatString: "MMM D (DDDD)",
                 type: "spline",
                 dataPoints: dataPointsArrayPerCapita
             },/*{
@@ -577,34 +459,10 @@ class ResultsComponent extends Component {
             }*/]
         }
 
-        dateRangeArray.forEach((date) => {
-            let dateFormatted = dateFormat(date, "yyyy/mm/dd")
-
-            if (finalZipCountByDate.has(dateFormatted)) {
-
-                let singleDayMap = finalZipCountByDate.get(dateFormatted)
-
-                singleDayMap.forEach((caseCount, zipCode) => {
-
-                    if (zipCodeMap.has(zipCode)) {
-                        let prevSingleZipCount = zipCodeMap.get(zipCode)
-                        if(!prevSingleZipCount)
-                            prevSingleZipCount = 0
-
-                        zipCodeMap.set(zipCode, (caseCount) + (prevSingleZipCount))
-                    } else {
-                        zipCodeMap.set(zipCode, (caseCount))
-                    }
-
-
-                })
-            }
-        })
-
         this.setState({
             zipCodeMap: zipCodeMap,
             finalZipCountByDate: finalZipCountByDate,
-            dateRangeArray: dateRangeArray,
+            // dateRangeArray: dateRangeArray,
             optionsWeekly: options_weekly,
             optionsDaily: options_daily,
             optionsAverage: options_average
@@ -616,9 +474,12 @@ class ResultsComponent extends Component {
 
 
     componentDidMount(){
-        this.refreshResults()
+        // this.refreshResults()
     }
+
     componentDidUpdate = (prevProps, prevState) => {
+
+        // Refresh results each time the query parameters change
         if(prevProps != this.props) {
             this.refreshResults()
         }
@@ -641,7 +502,7 @@ class ResultsComponent extends Component {
 
         // TODO:  Delete the validation below this
 
-        const CHECK_VALIDATION = true
+        const CHECK_VALIDATION = false
 
         if(CHECK_VALIDATION) {
             let obj = Object.fromEntries(this.state.zipCodeMap);
@@ -677,7 +538,7 @@ class ResultsComponent extends Component {
                     {/*<h4>Current Risk <small>(showing past {this.getNumDays()} days)</small></h4>*/}
 
                         <MapChartHeatmap stateObj={this.props} singleZip={this.props.singleZip} chulaVistaPopulations={this.props.chulaVistaPopulations}
-                        associatedPopulationsObj={this.props.associatedPopulationsObj} dateRangeArray={this.state.dateRangeArray} zipCodeMap={this.state.zipCodeMap}
+                        associatedPopulationsObj={this.props.associatedPopulationsObj} zipCodeMap={this.state.zipCodeMap}
                         finalZipCountByDate={this.state.finalZipCountByDate}
                         updateSingleZip={this.updateSingleZip}
                         updateParentState={this.updateParentState}
