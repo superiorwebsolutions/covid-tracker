@@ -53,6 +53,7 @@ class MainApp extends Component{
 
     render(){
         // master change
+        // temp comment
         console.log("render MainApp")
         console.log(this.state)
 
