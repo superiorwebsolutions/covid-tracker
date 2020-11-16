@@ -1,21 +1,10 @@
-import React, {Component, useState, useEffect} from "react";
-import {Navbar, ToggleButtonGroup, ButtonGroup, Button, ToggleButton} from "react-bootstrap";
-import styled from "styled-components";
-import Dropdown from "react-bootstrap";
+import React, {Component} from "react";
+import {ToggleButtonGroup, Button} from "react-bootstrap";
 
+import {zipCodeNames} from "../../Constants";
 
 
 const dateFormat = require('dateformat');
-
-
-const dropdownOptions = [
-    { name: 'Past 7 days', value: 'past-week' },
-    { name: '30 days', value: 'past-month' },
-    { name: '90 days', value: 'past-3-months' },
-    { name: 'All Time', value: 'all-time' },
-
-
-];
 
 
 
@@ -24,45 +13,33 @@ class FilterComponent extends Component{
     constructor(props) {
         super(props);
 
-        this.handleChange = this.handleChange.bind(this)
         this.loadMore = this.loadMore.bind(this)
-        this.resetChart = this.resetChart.bind(this)
         this.setStartDate = this.setStartDate.bind(this)
         this.handleScroll = this.handleScroll.bind(this)
 
         this.state = {
-            showPbButton: true,
-            showLoadButton: true,
             activeButton: "past-week",
             scrolled: false
         }
 
-        this.setActive(this.state.activeButton)
+        this.dropdownOptions = [
+            { name: 'Past 7 days', value: 'past-week' },
+            { name: '30 days', value: 'past-month' },
+            { name: '90 days', value: 'past-3-months' },
+            { name: 'All Time', value: 'all-time' },
+        ];
+
 
     }
 
-
-    handleChange(booleanVal){
-        booleanVal = booleanVal || false
-        this.setState({showPbButton: false})
-        this.props.handleStateObj({filter: booleanVal});
-    }
-    loadMore(booleanVal){
+    loadMore(){
         let startDate = new Date("2020/06/06")
         startDate = dateFormat(startDate, "yyyy/mm/dd")
 
         this.props.setStartDate(startDate)
-        //
-        // booleanVal = booleanVal || false
-        // this.setState({showLoadButton: true})
-        // this.props.handleStateObj({loadMore: booleanVal});
+
     }
 
-    resetChart(){
-        this.handleChange(false)
-        this.loadMore(false)
-        this.setState({showPbButton: true, showLoadButton: true})
-    }
     setStartDate(daysAgo){
         let startDate = new Date()
         // Need to subtract 12 to adjust for data
@@ -76,8 +53,6 @@ class FilterComponent extends Component{
         let zipCodeArray = [91910, 91911, 91913]
         this.handleStateObj({singleZip: zipCodeArray})
     }
-
-
 
 
     componentDidMount() {
@@ -110,13 +85,10 @@ class FilterComponent extends Component{
             this.setScrolled(false);
         }
     }
+
     render(){
         console.log("render FilterComponent")
         console.log(this.state)
-
-
-
-
 
 
         let navbarClass = ""
@@ -139,7 +111,7 @@ class FilterComponent extends Component{
 
 
             let tempArray = this.props.singleZip.map((zipCode) => {
-                return this.props.zipCodeNames[zipCode]
+                return zipCodeNames[zipCode]
             })
 
             showingRegionsText += tempArray.join(", ")
@@ -153,7 +125,7 @@ class FilterComponent extends Component{
 
                 <ToggleButtonGroup name="filters" className={"topSection " + hideMenu}>
 
-                    {dropdownOptions.map(radio => (
+                    {this.dropdownOptions.map(radio => (
                         <Button
                             key={radio.value}
                             type="radio"
@@ -166,14 +138,6 @@ class FilterComponent extends Component{
                         </Button>
                     ))}
 
-                    {/*<Button id="show-week" variant="secondary" className="show-pb" onClick={() => {this.setStartDate(7)}}>Show past week</Button>*/}
-
-                    {/*<Button id="show-all" variant="primary" className="show-pb" onClick={() => {this.loadMore(true)}}>Show all time</Button>*/}
-
-                    {/*{ this.state.showPbButton || this.state.showLoadButton ? null : <Button variant="secondary" className="show-pb" onClick={this.resetChart}>Reset Graphs</Button> }*/}
-
-
-
                 </ToggleButtonGroup>
 
 
@@ -181,13 +145,9 @@ class FilterComponent extends Component{
                         <>
                     <div className="flex-row">
 
-
                         <Button variant="primary" className="clear-selection-top" size="sm"  onClick={() => {
                             this.props.updateClearSelection(true)
                         }}>Reset Filters</Button>
-
-
-
 
                     </div>
 
@@ -204,12 +164,9 @@ class FilterComponent extends Component{
 
                 <header className={"navbar " + hideScroller + " " + navbarClass}>
 
-
-
-
                     <ToggleButtonGroup name="filters" className="topSection">
 
-                            {dropdownOptions.map(radio => (
+                            {this.dropdownOptions.map(radio => (
                                 <Button
                                     key={radio.value}
                                     type="radio"
@@ -222,15 +179,6 @@ class FilterComponent extends Component{
                                 </Button>
                             ))}
 
-
-
-                        {/*<Button id="show-week" variant="secondary" className="show-pb" onClick={() => {this.setStartDate(7)}}>Show past week</Button>*/}
-
-                        {/*<Button id="show-all" variant="primary" className="show-pb" onClick={() => {this.loadMore(true)}}>Show all time</Button>*/}
-
-                        {/*{ this.state.showPbButton || this.state.showLoadButton ? null : <Button variant="secondary" className="show-pb" onClick={this.resetChart}>Reset Graphs</Button> }*/}
-
-
                     </ToggleButtonGroup>
 
 
@@ -238,13 +186,9 @@ class FilterComponent extends Component{
                     <>
                         <div className="flex-row">
 
-
                             <Button variant="primary" className="clear-selection-top" size="sm"  onClick={() => {
                                 this.props.updateClearSelection(true)
                             }}>Reset Filters</Button>
-
-
-
 
                         </div>
 
@@ -263,9 +207,6 @@ class FilterComponent extends Component{
 
         )
     }
-
-
-
 }
 export default FilterComponent
 

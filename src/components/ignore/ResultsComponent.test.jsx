@@ -1,6 +1,6 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import ResultsComponent from './ResultsComponent';
+import ResultsComponent from '../app/ResultsComponent';
 import {describe, it} from "@jest/globals";
 
 describe("ResultsComponent", () => {
