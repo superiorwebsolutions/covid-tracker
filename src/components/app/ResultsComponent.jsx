@@ -2,7 +2,7 @@ import React, {Component} from "react";
 
 import ServiceApi from "../../services/ServiceApi";
 
-import CanvasJSReact from "./canvasjs.react";
+import CanvasJSReact from "../../assets/canvasjs.react";
 
 import {stripLines, associatedPopulationsObj, chulaVistaPopulations} from "../../Constants";
 
