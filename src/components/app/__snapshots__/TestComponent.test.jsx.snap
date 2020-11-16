@@ -1,0 +1,12 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TestComponent should render initial layout 1`] = `
+Array [
+  <div>
+    <input
+      onChange={[Function]}
+      type="text"
+    />
+  </div>,
+]
+`;

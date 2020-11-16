@@ -14,7 +14,6 @@ import ReactTooltip from 'react-tooltip'
 import { scaleQuantize } from "d3-scale";
 import { csv } from "d3-fetch";
 
-import MapChart from "./MapChart";
 import MapChartHeatmap from "./MapChartHeatmap";
 
 const dateFormat = require('dateformat');
@@ -650,7 +649,10 @@ class ResultsComponent extends Component {
 
 
 
+        const obj = Object.fromEntries(zipCodeMap);
+
         this.setState({
+            obj: obj,
             zipCodeMap: zipCodeMap,
             finalZipCountByDate: finalZipCountByDate,
             dateRangeArray: dateRangeArray,
@@ -686,6 +688,7 @@ class ResultsComponent extends Component {
 
         console.log("render ResultsComponent")
         console.log(this.state)
+
 
 
 
