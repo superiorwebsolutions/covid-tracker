@@ -43,8 +43,6 @@ class MapChartHeatmap extends Component {
     constructor(props) {
         super(props);
 
-
-
         this.state = {
             // activeZipCodes: [],
             // zipCodeMap: new Map(),
@@ -54,15 +52,6 @@ class MapChartHeatmap extends Component {
             coordinates: 32.769248
         }
 
-        // this.props.updateZipCodesAllowed([])
-
-        // const [activeZip, setCount] = useState("");
-        // let [zipCodeMap, setData] = useState(new Map());
-        // let [finalZipCountByDate, setZipCountData] = useState(new Map());
-        // let [dateRangeArray, setDateRange] = useState([]);
-
-
-        // setData(props.zipCodeMap)
     }
 
 
@@ -161,7 +150,6 @@ class MapChartHeatmap extends Component {
 
 
                                         let geoZip = geo.properties.zip
-                                        // if((associatedPopulationsObj[geoZip] && this.props.stateObj.singleZip.length === 0) || this.props.stateObj.singleZip.includes(geoZip) == true) {
                                         if (associatedPopulationsObj[geoZip]) {
 
 

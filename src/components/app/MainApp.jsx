@@ -58,8 +58,8 @@ class MainApp extends Component{
                 "92136",
 
                 "91910",
-            "91911",
-            "91913"
+                "91911",
+                "91913"
 
             ],
             associatedPopulationsObj: {
@@ -221,7 +221,7 @@ class MainApp extends Component{
 
                     <div className="clearfix"></div>
 
-                    <ResultsComponent chulaVistaOnly={this.state.chulaVistaOnly} startDate={this.state.startDate} singleZip={this.state.singleZip} stateObj={this.state} zipCodesAllowed={this.state.zipCodesAllowed} updateState={this.updateState}></ResultsComponent>
+                    <ResultsComponent {...this.state} updateState={this.updateState}></ResultsComponent>
 
 
                     <br />

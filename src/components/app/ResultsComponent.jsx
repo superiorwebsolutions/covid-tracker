@@ -26,18 +26,19 @@ class ResultsComponent extends Component {
         super(props);
 
         this.state = {
-            allResults: new Map(),
             dateRangeArray: [],
             finalZipCountByDate: new Map(),
             optionsWeekly: {},
             optionsDaily: {},
             optionsAverage: {},
             zipCodeMap: new Map(),
-            latestDate: null
 
         }
+
+        this.allResults = new Map()
+        this.latestDate = null
+
         this.refreshResults = this.refreshResults.bind(this)
-        this.updateZipCodesAllowed = this.updateZipCodesAllowed.bind(this)
         this.updateSingleZip = this.updateSingleZip.bind(this)
         this.updateParentState = this.updateParentState.bind(this)
 
@@ -50,23 +51,6 @@ class ResultsComponent extends Component {
                     let allResultsOrig = response.data.features;
 
                     let allResults = allResultsOrig.reverse()
-                    //let allResults = allResultsOrig.slice(0, 25000)
-                    //allResults.reverse()
-
-
-                    let objCountByDate = new Map();
-
-
-                    let zipCodesAllowed;
-
-                    // if (this.props.stateObj.filter == true) {
-                    //     zipCodesAllowed = [92109]
-                    //     this.props.updateState({associatedPopulations: [49744]})
-                    //
-                    // }
-                    // else
-                        zipCodesAllowed = this.props.stateObj.zipCodesAllowed
-
 
                     let partialResults = []
                     for (let result of allResults) {
@@ -83,11 +67,11 @@ class ResultsComponent extends Component {
                         if(updateDate == "2020/05/15 08:00:00+00")
                             break
 
-                        if (zipCodesAllowed.includes(zipCode)) {
+                        if (zipCode in this.props.associatedPopulationsObj || zipCode in this.props.chulaVistaPopulations) {
 
-                            // Only show results after cutoff date
-                            if (caseCount == null || caseCount == 0) {
-                                continue
+                            // Do not include days with no cases
+                            if (caseCount == null) {
+                                data.case_count = 0
                             }
 
                             partialResults.push(data)
@@ -95,30 +79,20 @@ class ResultsComponent extends Component {
                             if(latestDate == null)
                                 latestDate = updateDate
 
-                            /*
-                            if (objCountByDate.has(dateString)) {
-                                objCountByDate.set(dateString, objCountByDate.get(dateString) + caseCount)
-
-                            } else {
-                                objCountByDate.set(dateString, caseCount)
-                            }
-
-                             */
-
-
                         }
                     }
 
-                    // objCountByDate = new Map([...objCountByDate.entries()].sort())
-
                     latestDate = dateFormat(latestDate, "yyyy/mm/dd");
 
-                    this.setState({
-                        allResults: partialResults,
-                        latestDate: latestDate
-                    })
+                    this.allResults = partialResults
+                    this.latestDate = latestDate
 
-                    this.refreshResults()
+                    // this.setState({
+                    //     allResults: partialResults,
+                    //     latestDate: latestDate
+                    // })
+
+                     this.refreshResults()
 
                 }
             )
@@ -127,13 +101,9 @@ class ResultsComponent extends Component {
     getNumDays(){
         let date1 = new Date(this.props.startDate)
 
-        let date2 = new Date(this.state.latestDate)
+        let date2 = new Date(this.latestDate)
         let diffTime = Math.abs(date2 - date1)
         return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) - 12;
-    }
-
-    updateZipCodesAllowed(zipCodesAllowed){
-        this.props.updateState({zipCodesAllowed: zipCodesAllowed})
     }
 
     updateSingleZip(zipCodeArray){
@@ -155,17 +125,15 @@ class ResultsComponent extends Component {
         let objCountByDate = new Map()
         let zipCodeByDate = new Map()
 
-        let zipCodesAllowed = this.props.zipCodesAllowed
-
         let associatedPopulationsObj
 
-        if(this.props.stateObj.chulaVistaOnly === true)
-            associatedPopulationsObj = this.props.stateObj.chulaVistaPopulations
+        if(this.props.chulaVistaOnly === true)
+            associatedPopulationsObj = this.props.chulaVistaPopulations
         else
-            associatedPopulationsObj = this.props.stateObj.associatedPopulationsObj
+            associatedPopulationsObj = this.props.associatedPopulationsObj
 
 
-        for (let result of this.state.allResults) {
+        for (let result of this.allResults) {
 
             let data2 = result
 
@@ -191,7 +159,7 @@ class ResultsComponent extends Component {
             if (associatedPopulationsObj[zipCode] != null) {
 
                 let currentDate
-                if (this.props.stateObj.loadMore == true) {
+                if (this.props.loadMore == true) {
                     currentDate = new Date("June 06, 2020")
 
                 }
@@ -308,10 +276,7 @@ class ResultsComponent extends Component {
             }
             average /= queue.length
 
-
             finalCountByDateAverage.set(dateString, average)
-
-
 
 
         }
@@ -327,9 +292,9 @@ class ResultsComponent extends Component {
         startDate = dateFormat(startDate, "yyyy/mm/dd")
 
 
-        let endDate = this.state.latestDate
+        let endDate = this.latestDate
 
-        // let startDate = this.props.stateObj.startDate
+        // let startDate = this.props.startDate
         // let endDate =  new Date()
         // endDate.setDate(endDate.getDate() - 2)
         // endDate = dateFormat(endDate, "yyyy/mm/dd")
@@ -358,14 +323,14 @@ class ResultsComponent extends Component {
 
         if(this.props.singleZip.length != 0){
             this.props.singleZip.forEach((zipCode) => {
-                populationTotal += this.props.stateObj.associatedPopulationsObj[zipCode]
+                populationTotal += this.props.associatedPopulationsObj[zipCode]
             })
         }
         else {
             console.log('hit')
-            Object.keys(this.props.stateObj.associatedPopulationsObj).forEach(( zipCode) => {
+            Object.keys(this.props.associatedPopulationsObj).forEach(( zipCode) => {
                 // If chula vista zip codes should not be included, do not include in population total
-                populationTotal += this.props.stateObj.associatedPopulationsObj[zipCode]
+                populationTotal += this.props.associatedPopulationsObj[zipCode]
             })
         }
 
@@ -387,7 +352,6 @@ class ResultsComponent extends Component {
             keys.reduce((r, a) => r[a] = r[a] || {}, objectAverage)[last] = value;
 
             if(value >= 0) {
-
 
                 dataPointsArrayAverage.push({x: new Date(key), y: value})
 
@@ -422,7 +386,7 @@ class ResultsComponent extends Component {
         // Delete first week because it is incomplete
         // reversedMapWeekly.delete(reversedMapWeekly.keys().next().value)
 
-        //let finalCountByDateLength = this.props.stateObj.finalCountByDate.length
+        //let finalCountByDateLength = this.props.finalCountByDate.length
 
         let count = 0
         let totalCases = 0
@@ -613,16 +577,6 @@ class ResultsComponent extends Component {
             }*/]
         }
 
-
-
-
-
-
-
-
-
-
-
         dateRangeArray.forEach((date) => {
             let dateFormatted = dateFormat(date, "yyyy/mm/dd")
 
@@ -647,12 +601,7 @@ class ResultsComponent extends Component {
             }
         })
 
-
-
-        const obj = Object.fromEntries(zipCodeMap);
-
         this.setState({
-            obj: obj,
             zipCodeMap: zipCodeMap,
             finalZipCountByDate: finalZipCountByDate,
             dateRangeArray: dateRangeArray,
@@ -669,12 +618,12 @@ class ResultsComponent extends Component {
     componentDidMount(){
         this.refreshResults()
     }
-    componentDidUpdate(prevProps, prevState){
-        if(prevProps.stateObj != this.props.stateObj || prevProps.startDate != this.props.startDate) {
+    componentDidUpdate = (prevProps, prevState) => {
+        if(prevProps != this.props) {
             this.refreshResults()
         }
 
-    }
+    };
 
 
 
@@ -690,6 +639,34 @@ class ResultsComponent extends Component {
         console.log(this.state)
 
 
+        // TODO:  Delete the validation below this
+
+        const CHECK_VALIDATION = true
+
+        if(CHECK_VALIDATION) {
+            let obj = Object.fromEntries(this.state.zipCodeMap);
+
+            function arrayEquals(a, b) {
+                return !(Array.isArray(a) &&
+                    Array.isArray(b) &&
+                    a.length === b.length &&
+                    a.every((val, index) => val === b[index]));
+            }
+
+            let validateObj = {"92037":389,"92101":1292,"92102":1038,"92103":480,"92104":674,"92105":1565,"92106":208,"92107":274,"92108":346,"92109":930,"92110":381,"92111":634,"92113":1757,"92115":1902,"92116":362,"92117":547,"92120":366,"92121":26,"92122":243,"92123":336,"92124":239,"92136":102,"92140":53,"92182":17}
+
+            validateObj = Object.values(validateObj);
+            obj = Object.values(obj)
+
+            // console.log(obj)
+            // console.log(validateObj)
+            if (arrayEquals(obj, validateObj)) {
+                console.log("CODE IS BROKEN, zipCodeMap is broken")
+            }
+        }
+
+        // TODO:  Delete the validation ABOVE this
+
 
 
         return(
@@ -699,24 +676,11 @@ class ResultsComponent extends Component {
                 <div className="map-wrapper">
                     {/*<h4>Current Risk <small>(showing past {this.getNumDays()} days)</small></h4>*/}
 
-
-
-
-
-
-
-                        <MapChartHeatmap stateObj={this.props.stateObj} singleZip={this.props.stateObj.singleZip} chulaVistaPopulations={this.props.stateObj.chulaVistaPopulations}
-                        associatedPopulationsObj={this.props.stateObj.associatedPopulationsObj} dateRangeArray={this.state.dateRangeArray} zipCodeMap={this.state.zipCodeMap}
-                        finalZipCountByDate={this.state.finalZipCountByDate} zipCodesAllowed={this.props.zipCodesAllowed}
+                        <MapChartHeatmap stateObj={this.props} singleZip={this.props.singleZip} chulaVistaPopulations={this.props.chulaVistaPopulations}
+                        associatedPopulationsObj={this.props.associatedPopulationsObj} dateRangeArray={this.state.dateRangeArray} zipCodeMap={this.state.zipCodeMap}
+                        finalZipCountByDate={this.state.finalZipCountByDate}
                         updateSingleZip={this.updateSingleZip}
                         updateParentState={this.updateParentState}
-
-
-                        updateZipCodesAllowed={(zipCodesAllowed) => {
-                        this.updateZipCodesAllowed(zipCodesAllowed)
-
-                    }}
-
 
 
                         />
