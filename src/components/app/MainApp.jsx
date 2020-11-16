@@ -19,7 +19,6 @@ class MainApp extends Component{
             startDate: startDate,
 
 
-            loadMore: false,
             clearSelection: false,
             singleZip: [],
 

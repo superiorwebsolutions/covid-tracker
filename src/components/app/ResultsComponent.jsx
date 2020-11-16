@@ -143,13 +143,7 @@ class ResultsComponent extends Component {
 
             if (associatedPopulations[zipCode] != null) {
 
-                let currentDate
-                if (this.props.loadMore === true) {
-                    currentDate = new Date("June 06, 2020")
-                }
-                else{
-                    currentDate = startDate
-                }
+                let currentDate = startDate
 
                 // Only show results more recent than cutoff date
                 if (currentDate >= dateString)
@@ -273,8 +267,7 @@ class ResultsComponent extends Component {
             }
             average /= queue.length
 
-            // if(index >= 11)
-                finalCountByDateAverage.set(dateString, average)
+            finalCountByDateAverage.set(dateString, average)
 
 
 
@@ -283,7 +276,7 @@ class ResultsComponent extends Component {
         })
 
         // Delete first item of finalCountByDate (because of bad data).  No longer needed
-        // finalCountByDate.delete(finalCountByDate.keys().next().value)
+        finalCountByDate.delete(finalCountByDate.keys().next().value)
         // finalZipCountByDate.delete(finalZipCountByDate.keys().next().value)
 
         let dataPointsArrayAverage = []

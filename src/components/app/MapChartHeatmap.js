@@ -21,7 +21,7 @@ class MapChartHeatmap extends Component {
 
         this.state = {
             content: "",
-            coordinates: 32.769248
+            coordinates: 32.779248
         }
 
         this.colorScale = scaleQuantize()
@@ -62,7 +62,7 @@ class MapChartHeatmap extends Component {
 
         this.props.updateParentState({singleZip: zipCodeArray})
 
-        // this.forceUpdate();
+        this.forceUpdate();
 
     };
 
@@ -103,14 +103,15 @@ class MapChartHeatmap extends Component {
                     // rotate: [, 0, 0]
 
                 }}
+                   width={500}
+                   height={420}
+                   style={{
+                       width: "100%",
+                       height: "auto",
+                   }}
+                >
 
-                               width={600}
-                               height={400}
-                               style={{
-                                   width: "100%",
-                                   height: "auto",
-                               }}>
-                    <ZoomableGroup center={[-117.155, this.state.coordinates]} zoom={1} maxZoom={1} disablePanning disableZooming onMoveStart={(position) => {
+                    <ZoomableGroup center={[-117.145, this.state.coordinates]} zoom={1} maxZoom={1} disablePanning disableZooming onMoveStart={(position) => {
 
                         this.setState({coordinates: this.state.coordinates + 0.00001})
 
@@ -166,27 +167,19 @@ class MapChartHeatmap extends Component {
                                                 zipCodeName: zipCodeName,
                                                 tooltip: tooltipText,
                                                 centerCoordinate: centerCoordinate,
-
                                                 x: x,
                                                 y: y
-
                                             }
 
                                             let cellStyle = {
                                                 fill: this.colorScale(locationObj.caseCount) ? this.colorScale(locationObj.caseCount) : "whitesmoke",
-                                                stroke: "#333",
-                                                strokeWidth: 1,
+                                                stroke: "#222",
+                                                strokeWidth: 1.5,
                                                 outline: 'none'
                                             }
 
-                                            let isSingleZip = false
-                                            if (this.props.singleZip.length > 0) {
-                                                if (this.props.singleZip.includes(locationObj.id)) {
-                                                    isSingleZip = true
-                                                }
-                                            }
                                             let cellStyleHover = {
-                                                fill: isSingleZip ? this.colorScale(locationObj.caseCount) : "transparent",
+                                                fill: this.colorScale(locationObj.caseCount),
                                                 stroke: "#1C446E",
                                                 outline: 'none'
                                             }
@@ -204,8 +197,8 @@ class MapChartHeatmap extends Component {
 
                                                         key={locationObj.id}
                                                         geography={geo}
-                                                        // fill={}
-                                                        // fill="black"
+
+                                                         fill="whitesmoke"
                                                         onClick={() => {
 
                                                             // this.setContent(locationObj.tooltip)
