@@ -17,14 +17,9 @@ class MainApp extends Component{
 
         this.state = {
             startDate: startDate,
-
-
             clearSelection: false,
             singleZip: [],
-
             chulaVistaOnly: false,
-
-
         }
 
         this.updateState = this.updateState.bind(this)

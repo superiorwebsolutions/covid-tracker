@@ -24,67 +24,107 @@ class ResultsComponent extends Component {
             optionsDaily: {},
             optionsAverage: {},
             zipCodeMap: new Map(),
+            optionsAverageStats: {},
 
         }
 
         this.allResults = new Map()
+        this.allResultsStats = new Map()
         this.latestDate = null
 
         this.updateParentState = this.updateParentState.bind(this)
 
-        ServiceApi.getAllResults()
-            .then(
-                (response) => {
 
-                    let latestDate = null
+        ServiceApi.getCountyStats()
+            .then((response) => {
 
-                    let allResultsOrig = response.data.features;
+                let allResultsOrig = response.data.features;
 
-                    let allResults = allResultsOrig.reverse()
+                let allResults = allResultsOrig.reverse()
 
-                    let partialResults = []
-                    for (let result of allResults) {
+                let partialResultsStats = []
+                for (let result of allResults) {
 
-                        let data = result.properties
+                    let data = result.properties
 
-                        let zipCode = data.ziptext
+                    // Strip the timestamp off the end of the date string
+                    let updateDate = data.date.slice(0, data.date.indexOf(' '))
 
-                        let caseCount = data.case_count
+                    data.date = updateDate
 
-                        // Strip the timestamp off the end of the date string
-                        let updateDate = data.updatedate.slice(0, data.updatedate.indexOf(' '))
+                    // Do not include any dates before 2020/05/15
+                    // if(updateDate == "2020/05/15")
+                    //     break
 
-                        data.updatedate = updateDate
 
-                        // Do not include any dates before 2020/05/15
-                        if(updateDate == "2020/05/15")
-                            break
-
-                        if (zipCode in associatedPopulationsObj || zipCode in chulaVistaPopulations) {
-
-                            // Do not include days with no cases
-                            if (caseCount == null) {
-                                data.case_count = 0
-                            }
-
-                            partialResults.push(data)
-
-                            if(latestDate == null) {
-
-                                latestDate = dateFormat(updateDate, "yyyy/mm/dd");
-
-                            }
-
-                        }
+                    // Do not include days with no cases
+                    if (data.case_count == null) {
+                        data.case_count = 0
                     }
 
-                    this.allResults = partialResults
-                    this.latestDate = latestDate
-
-                    this.refreshResults()
+                    partialResultsStats.push(data)
 
                 }
-            )
+
+                this.allResultsStats = partialResultsStats
+
+                // console.log(partialResultsStats)
+
+                 this.refreshResultsStats()
+            }
+        )
+
+
+        ServiceApi.getAllResults()
+            .then((response) => {
+
+                let latestDate = null
+
+                let allResultsOrig = response.data.features;
+
+                let allResults = allResultsOrig.reverse()
+
+                let partialResults = []
+                for (let result of allResults) {
+
+                    let data = result.properties
+
+                    let zipCode = data.ziptext
+
+                    // Strip the timestamp off the end of the date string
+                    let updateDate = data.updatedate.slice(0, data.updatedate.indexOf(' '))
+
+                    data.updatedate = updateDate
+
+                    // Do not include any dates before 2020/05/15
+                    if(updateDate == "2020/05/15")
+                        break
+
+                    if (zipCode in associatedPopulationsObj || zipCode in chulaVistaPopulations) {
+
+                        // Do not include days with no cases
+                        if (data.case_count == null) {
+                            data.case_count = 0
+                        }
+
+                        partialResults.push(data)
+
+                        if(latestDate == null) {
+
+                            latestDate = dateFormat(updateDate, "yyyy/mm/dd");
+
+                        }
+
+                    }
+                }
+
+                this.allResults = partialResults
+                this.latestDate = latestDate
+
+                this.refreshResults()
+
+            }
+        )
     }
 
     getNumDays(){
@@ -111,6 +151,196 @@ class ResultsComponent extends Component {
         }
 
     };
+
+    refreshResultsStats(){
+        // let startDate = this.props.startDate
+        // startDate = dateFormat(startDate, "yyyy/mm/dd")
+
+        let statsByDate = new Map()
+
+        for (let result of this.allResultsStats) {
+            let data = {}
+
+            data.date = result.date
+
+            data.newCases = result.newcases
+
+            data.rollingPercentPositive = result.rolling_perc_pos_cases
+
+            data.age20_29 = result.age20_29
+            data.age30_39 = result.age30_39
+            data.age40_49 = result.age40_49
+
+
+
+            data.hospitalized = result.hospitalized
+            data.icu = result.icu
+            data.deaths = result.deaths
+
+            statsByDate.set(data.date, data)
+
+
+        }
+
+        statsByDate = new Map([...statsByDate.entries()].sort())
+
+        // console.log(statsByDate)
+
+
+        // Traverse zipCodeByDate and compare total counts to one day prior
+        // let prevDayCount = 0
+        // let prevDayMap = new Map()
+        // let finalCountByDateAverage = new Map()
+        // let queue = []
+        // let finalCountByDateLength = zipCodeByDate.size
+        // let runningAverageNumDays = false
+
+        let prevDayObj = {hospitalized: 0, icu: 0, age20_29: 0, age30_39: 0, age40_49: 0}
+
+        const compareFieldNames = ['hospitalized', 'icu', 'deaths', 'age20_29', 'age30_39', 'age40_49']
+
+        const regularFieldNames = ['date', 'newCases', 'rollingPercentPositive']
+
+
+        let statsByDateFinal = new Map()
+
+        let index = 0
+        statsByDate.forEach(( singleDayObj, dateString) => {
+            index++
+
+            // if(prevDayObj.hospitalized == null)
+            //     prevDayObj.hospitalized = singleDayObj.hospitalized
+
+            let tempObj = {}
+
+            let fieldName = 'hospitalized'
+            tempObj[fieldName] = singleDayObj[fieldName] - prevDayObj[fieldName]
+
+            for(let fieldName of compareFieldNames){
+                tempObj[fieldName] = singleDayObj[fieldName] - prevDayObj[fieldName]
+
+            }
+
+            for(let fieldName of regularFieldNames){
+                tempObj[fieldName] = singleDayObj[fieldName]
+            }
+
+            // Copy singleDayObj into prevDayObj
+            Object.assign(prevDayObj, singleDayObj);
+
+
+            statsByDateFinal.set(dateString, tempObj)
+
+            // Some data is corrupt, set those as zero
+            // if(currentDayCountZipCode < 0)
+            //     currentDayCountZipCode = 0
+
+            // statsByDate.set(dateString, singleDayObj)
+
+            /*
+            // Skip the first 10, because those are only needed for the averaging
+            if(index > 10) {
+
+                // Populate finalZipCountByDate
+                finalZipCountByDate.set(dateString, tempMap)
+
+                // Populate zipCodeMap
+                let singleDayMap = finalZipCountByDate.get(dateString)
+
+                singleDayMap.forEach((caseCount, zipCode) => {
+
+                    if (zipCodeMap.has(zipCode)) {
+                        let prevSingleZipCount = zipCodeMap.get(zipCode)
+                        if (!prevSingleZipCount)
+                            prevSingleZipCount = 0
+
+                        zipCodeMap.set(zipCode, (caseCount) + (prevSingleZipCount))
+                    } else {
+                        zipCodeMap.set(zipCode, (caseCount))
+                    }
+                })
+            }
+
+
+            // Populate finalCountByDateAverage
+            queue.push(currentDayCount)
+
+            // If index is within 5 most recent dates, change to 3-day average (from 10-day average)
+            if(index > finalCountByDateLength - 5){
+                while(queue.length > (runningAverageNumDays ? runningAverageNumDays : 3))
+                    queue.shift()
+            }
+            else{
+                if (queue.length > (runningAverageNumDays ? runningAverageNumDays : 10))
+                    queue.shift()
+            }
+
+            let average = 0
+            for (let value of queue) {
+                average += value
+            }
+            average /= queue.length
+
+            finalCountByDateAverage.set(dateString, average)
+
+
+
+
+             */
+
+
+        })
+    console.log(statsByDateFinal)
+
+
+
+        let dataPointsArrayAverageStats = []
+
+        statsByDateFinal.forEach((singleDayObj, key) => {
+
+            let value = singleDayObj.hospitalized
+
+            if(value == null)
+                value = 0
+            else
+                value = Math.round(value)
+
+            dataPointsArrayAverageStats.push({x: new Date(key), y: value})
+
+        });
+
+
+
+        let optionsAverageStats = {
+            animationEnabled: true,
+            axisY2: {
+                labelFontSize: 18,
+                minimum: 0
+            },
+            axisX: {
+                // interval: 7,
+                // intervalType: "day",
+                valueFormatString: "M/D",
+                stripLines:stripLines,
+            },
+
+            data: [{
+                axisYType: "secondary",
+                // indexLabelFontColor: "darkSlateGray",
+                // indexLabelPlacement: "outside",
+                yValueFormatString: "#",
+                xValueFormatString: "MMM D (DDDD)",
+                type: "spline",
+                dataPoints: dataPointsArrayAverageStats
+                // dataPoints: dataPointsArray
+            }]
+        }
+
+        this.setState({
+            optionsAverageStats: optionsAverageStats
+        })
+
+    }
 
 
 
@@ -146,9 +376,6 @@ class ResultsComponent extends Component {
             let updateDate = data2.updatedate
 
             let dateString = updateDate
-
-
-
 
             if (associatedPopulations[zipCode] != null) {
 
@@ -499,8 +726,13 @@ class ResultsComponent extends Component {
                     <small className="stay-home">Stay home if >20 per capita </small>
                     <CanvasJSChart options={this.state.optionsDaily} />
 
+                </div>
 
 
+
+                <div className="contributionChart">
+                    <h5>Hospitalizations <small>(entire county)</small></h5>
+                    <CanvasJSChart options={this.state.optionsAverageStats} />
                 </div>
 
                 <div className="spacing"></div>
