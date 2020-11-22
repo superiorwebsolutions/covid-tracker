@@ -24,7 +24,6 @@ class ResultsComponent extends Component {
             optionsDaily: {},
             optionsAverage: {},
             zipCodeMap: new Map(),
-            optionsAverageStats: {},
 
         }
 
@@ -35,44 +34,7 @@ class ResultsComponent extends Component {
         this.updateParentState = this.updateParentState.bind(this)
 
 
-        ServiceApi.getCountyStats()
-            .then((response) => {
 
-                let allResultsOrig = response.data.features;
-
-                let allResults = allResultsOrig.reverse()
-
-                let partialResultsStats = []
-                for (let result of allResults) {
-
-                    let data = result.properties
-
-                    // Strip the timestamp off the end of the date string
-                    let updateDate = data.date.slice(0, data.date.indexOf(' '))
-
-                    data.date = updateDate
-
-                    // Do not include any dates before 2020/05/15
-                    // if(updateDate == "2020/05/15")
-                    //     break
-
-
-                    // Do not include days with no cases
-                    if (data.case_count == null) {
-                        data.case_count = 0
-                    }
-
-                    partialResultsStats.push(data)
-
-                }
-
-                this.allResultsStats = partialResultsStats
-
-                // console.log(partialResultsStats)
-
-                 this.refreshResultsStats()
-            }
-        )
 
 
         ServiceApi.getAllResults()
@@ -122,6 +84,45 @@ class ResultsComponent extends Component {
                 this.latestDate = latestDate
 
                 this.refreshResults()
+
+                ServiceApi.getCountyStats()
+                    .then((response) => {
+
+                            let allResultsOrig = response.data.features;
+
+                            let allResults = allResultsOrig.reverse()
+
+                            let partialResultsStats = []
+                            for (let result of allResults) {
+
+                                let data = result.properties
+
+                                // Strip the timestamp off the end of the date string
+                                let updateDate = data.date.slice(0, data.date.indexOf(' '))
+
+                                data.date = updateDate
+
+                                // Do not include any dates before 2020/05/15
+                                // if(updateDate == "2020/05/15")
+                                //     break
+
+
+                                // Do not include days with no cases
+                                if (data.case_count == null) {
+                                    data.case_count = 0
+                                }
+
+                                partialResultsStats.push(data)
+
+                            }
+
+                            this.allResultsStats = partialResultsStats
+
+                            // console.log(partialResultsStats)
+
+                            this.refreshResultsStats()
+                        }
+                    )
 
             }
         )
@@ -184,17 +185,6 @@ class ResultsComponent extends Component {
 
         statsByDate = new Map([...statsByDate.entries()].sort())
 
-        // console.log(statsByDate)
-
-
-        // Traverse zipCodeByDate and compare total counts to one day prior
-        // let prevDayCount = 0
-        // let prevDayMap = new Map()
-        // let finalCountByDateAverage = new Map()
-        // let queue = []
-        // let finalCountByDateLength = zipCodeByDate.size
-        // let runningAverageNumDays = false
-
         let prevDayObj = {hospitalized: 0, icu: 0, age20_29: 0, age30_39: 0, age40_49: 0}
 
         const compareFieldNames = ['hospitalized', 'icu', 'deaths', 'age20_29', 'age30_39', 'age40_49']
@@ -202,7 +192,18 @@ class ResultsComponent extends Component {
         const regularFieldNames = ['date', 'newCases', 'rollingPercentPositive']
 
 
-        let statsByDateFinal = new Map()
+        let objState = {}
+
+        let finalStatsByDate = new Map()
+
+        let queueObj = {}
+        for(let fieldName of compareFieldNames){
+            queueObj[fieldName] = []
+        }
+
+        let runningAverageNumDays = null
+
+        let statsByDateLength = statsByDate.size
 
         let index = 0
         statsByDate.forEach(( singleDayObj, dateString) => {
@@ -213,12 +214,32 @@ class ResultsComponent extends Component {
 
             let tempObj = {}
 
-            let fieldName = 'hospitalized'
-            tempObj[fieldName] = singleDayObj[fieldName] - prevDayObj[fieldName]
-
             for(let fieldName of compareFieldNames){
+
                 tempObj[fieldName] = singleDayObj[fieldName] - prevDayObj[fieldName]
 
+                // TODO:  Delete average here, do not need it anymore
+
+                // Populate finalCountByDateAverage
+                queueObj[fieldName].push(tempObj[fieldName])
+
+                // If index is within 5 most recent dates, change to 3-day average (from 10-day average)
+                if(index > statsByDateLength - 5){
+                    while(queueObj[fieldName].length > (runningAverageNumDays ? runningAverageNumDays : 5))
+                        queueObj[fieldName].shift()
+                }
+                else{
+                    if (queueObj[fieldName].length > (runningAverageNumDays ? runningAverageNumDays : 14))
+                        queueObj[fieldName].shift()
+                }
+
+                let average = 0
+                for (let value of queueObj[fieldName]) {
+                    average += value
+                }
+                average /= queueObj[fieldName].length
+
+                tempObj[fieldName + '_average'] = average
             }
 
             for(let fieldName of regularFieldNames){
@@ -229,118 +250,138 @@ class ResultsComponent extends Component {
             Object.assign(prevDayObj, singleDayObj);
 
 
-            statsByDateFinal.set(dateString, tempObj)
-
-            // Some data is corrupt, set those as zero
-            // if(currentDayCountZipCode < 0)
-            //     currentDayCountZipCode = 0
-
-            // statsByDate.set(dateString, singleDayObj)
-
-            /*
-            // Skip the first 10, because those are only needed for the averaging
-            if(index > 10) {
-
-                // Populate finalZipCountByDate
-                finalZipCountByDate.set(dateString, tempMap)
-
-                // Populate zipCodeMap
-                let singleDayMap = finalZipCountByDate.get(dateString)
-
-                singleDayMap.forEach((caseCount, zipCode) => {
-
-                    if (zipCodeMap.has(zipCode)) {
-                        let prevSingleZipCount = zipCodeMap.get(zipCode)
-                        if (!prevSingleZipCount)
-                            prevSingleZipCount = 0
-
-                        zipCodeMap.set(zipCode, (caseCount) + (prevSingleZipCount))
-                    } else {
-                        zipCodeMap.set(zipCode, (caseCount))
-                    }
-                })
-            }
-
-
-            // Populate finalCountByDateAverage
-            queue.push(currentDayCount)
-
-            // If index is within 5 most recent dates, change to 3-day average (from 10-day average)
-            if(index > finalCountByDateLength - 5){
-                while(queue.length > (runningAverageNumDays ? runningAverageNumDays : 3))
-                    queue.shift()
-            }
-            else{
-                if (queue.length > (runningAverageNumDays ? runningAverageNumDays : 10))
-                    queue.shift()
-            }
-
-            let average = 0
-            for (let value of queue) {
-                average += value
-            }
-            average /= queue.length
-
-            finalCountByDateAverage.set(dateString, average)
-
-
-
-
-             */
+            finalStatsByDate.set(dateString, tempObj)
 
 
         })
-    console.log(statsByDateFinal)
+
+        for(let fieldName of compareFieldNames.concat(['newCases'])){
+
+            objState[fieldName + 'Chart'] = this.getChartByFieldName(finalStatsByDate, fieldName, fieldName == 'age20_29' ? 1 : null)
+        }
 
 
+        this.setState(objState)
 
-        let dataPointsArrayAverageStats = []
+    }
 
-        statsByDateFinal.forEach((singleDayObj, key) => {
 
-            let value = singleDayObj.hospitalized
+    getChartByFieldName(finalStatsByDate, fieldName, dateChunk){
+
+
+        let dataPointsArrayStats = []
+
+        let numOfDays
+
+        if(dateChunk === 1){
+            numOfDays = 14
+        }
+
+
+        finalStatsByDate.forEach((singleDayObj, key) => {
+
+            let value = singleDayObj[fieldName]
+
+            if(dateChunk === 1) {
+                // value += singleDayObj['age30_39']
+                value = (value / singleDayObj['newCases']) * 100
+
+            }
+
+
 
             if(value == null)
                 value = 0
             else
                 value = Math.round(value)
 
-            dataPointsArrayAverageStats.push({x: new Date(key), y: value})
+
+
+
+
+            dataPointsArrayStats.push({x: new Date(key), y: value})
+
 
         });
 
+        let dataPointsArrayAverageStats = []
+
+        // dataPointsArrayStats.splice(0,200)
+
+        if(numOfDays == null)
+            numOfDays = 14
+
+        var total = 0
+
+        let averageOffset = 1
+
+        if(fieldName == 'newCases'){
+            numOfDays = 14
+            dateChunk = 1
+        }
+        if(dateChunk == null)
+            dateChunk = 7
 
 
-        let optionsAverageStats = {
-            animationEnabled: true,
+        let dataPointsArrayStatsLength = dataPointsArrayStats.length
+        let remainder = dataPointsArrayStatsLength % dateChunk
+
+
+        for(var i = numOfDays; i < dataPointsArrayStatsLength + averageOffset; i++) {
+            // total = 0
+
+            if(i > dataPointsArrayStatsLength - 7)
+                numOfDays = 3
+
+            for(var j = (i - numOfDays); j < i; j++) {
+                total += dataPointsArrayStats[j].y;
+            }
+            if(i % dateChunk == remainder) {
+                dataPointsArrayAverageStats.push({
+                    x: dataPointsArrayStats[i - averageOffset].x,
+                    y: total / numOfDays
+                });
+
+                total = 0;
+            }
+        }
+
+
+        // Remove first few entries, start in April
+        dataPointsArrayAverageStats.splice(0, 20)
+
+
+
+
+        let chart = {
             axisY2: {
                 labelFontSize: 18,
                 minimum: 0
             },
             axisX: {
                 // interval: 7,
-                // intervalType: "day",
+                // intervalType: "week",
                 valueFormatString: "M/D",
                 stripLines:stripLines,
             },
 
-            data: [{
-                axisYType: "secondary",
-                // indexLabelFontColor: "darkSlateGray",
-                // indexLabelPlacement: "outside",
-                yValueFormatString: "#",
-                xValueFormatString: "MMM D (DDDD)",
-                type: "spline",
-                dataPoints: dataPointsArrayAverageStats
-                // dataPoints: dataPointsArray
-            }]
+            data: [
+                {
+                    axisYType: "secondary",
+                    yValueFormatString: "#",
+                    xValueFormatString: "MMM D (DDDD)",
+                    type: "spline",
+                    dataPoints: dataPointsArrayAverageStats
+                } ]
         }
 
-        this.setState({
-            optionsAverageStats: optionsAverageStats
-        })
 
+        return chart
     }
+
+
+
+
 
 
 
@@ -693,6 +734,7 @@ class ResultsComponent extends Component {
         // console.log("render ResultsComponent")
         // console.log(this.state)
 
+
         return(
             <>
 
@@ -712,28 +754,25 @@ class ResultsComponent extends Component {
 
                     {this.getNumDays() > 20 &&
                     <>
-                        <h5>Cases Per Week {this.props.singleZip.length > 0 &&  <small>(selected regions only)</small>}</h5>
+                        <h5>Cases Per Week{this.props.singleZip.length > 0 && <small><br />(selected regions only)</small>}</h5>
                         <CanvasJSChart options={this.state.optionsWeekly} />
                         <br />
                     </>
                     }
 
-                    <h5>Cases Per Day (averaged) {this.props.singleZip.length > 0 &&  <small>(selected regions only)</small>}</h5>
+                    <h5>Cases Per Day (averaged){this.props.singleZip.length > 0 && <small><br />(selected regions only)</small>}</h5>
                     <CanvasJSChart options={this.state.optionsAverage} />
 
                     <br />
-                    <h5>Cases Per Capita (100k) {this.props.singleZip.length > 0 &&  <small>(selected regions only)</small>}</h5>
+                    <h5>Cases Per Capita (100k){this.props.singleZip.length > 0 && <small><br />(selected regions only)</small>}</h5>
                     <small className="stay-home">Stay home if >20 per capita </small>
                     <CanvasJSChart options={this.state.optionsDaily} />
 
                 </div>
 
+                <br /><br />
 
 
-                <div className="contributionChart">
-                    <h5>Hospitalizations <small>(entire county)</small></h5>
-                    <CanvasJSChart options={this.state.optionsAverageStats} />
-                </div>
 
                 <div className="spacing"></div>
                 <div className="spacing"></div>
@@ -741,7 +780,36 @@ class ResultsComponent extends Component {
 
                 <SortedRiskByZipCode finalZipCountByDate={this.state.finalZipCountByDate} zipCodeMap={this.state.zipCodeMap}></SortedRiskByZipCode>
 
-                <br /> <br /> <br />
+                <div className="spacing"></div>
+                <div className="spacing"></div>
+                <div className="spacing"></div>
+
+
+                <hr />
+                <div className="contributionChart">
+
+                    <h5>Daily Cases<br /><small>(entire county)</small></h5>
+                    <CanvasJSChart options={this.state.newCasesChart} />
+                    <br />
+
+                    <h5>Weekly Hospitalizations<br /><small>(entire county)</small></h5>
+                    <CanvasJSChart options={this.state.hospitalizedChart} />
+                    <br />
+
+                    <h5>Weekly Deaths<br /><small>(entire county)</small></h5>
+                    <CanvasJSChart options={this.state.deathsChart} />
+
+                    <br />
+                    <h5>Weekly ICU<br /><small>(entire county)</small></h5>
+                    <CanvasJSChart options={this.state.icuChart} />
+                    <br />
+
+                    <br />
+                    <h5>Percentage of all cases<br />caused by ages 20-29</h5>
+                    <CanvasJSChart options={this.state.age20_29Chart} />
+                    <br />
+
+                </div>
 
             </>
 

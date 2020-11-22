@@ -39,7 +39,7 @@ class SortedRiskByZipCode extends Component{
         })
 
         return(<div className="regions-by-risk">
-            <h5>Highest Risk Areas <small>(past {numDays} days)</small></h5>
+            <h5>Highest Risk Areas<br /><small>(past {numDays} days)</small></h5>
             <Table>
                 <thead>
                 <tr>

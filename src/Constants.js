@@ -1,6 +1,6 @@
 import {scaleQuantize} from "d3-scale";
 
-const LOCAL_DATASETS = true
+const LOCAL_DATASETS = false
 
 let API_URL
 let API_COUNTY
