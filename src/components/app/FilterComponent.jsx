@@ -87,9 +87,8 @@ class FilterComponent extends Component{
     }
 
     render(){
-        console.log("render FilterComponent")
-        console.log(this.state)
-
+        // console.log("render FilterComponent")
+        // console.log(this.state)
 
         let navbarClass = ""
         let hideMenu = ""
@@ -117,7 +116,6 @@ class FilterComponent extends Component{
             showingRegionsText += tempArray.join(", ")
         }
 
-        //TODO:  toggleShowAll toggleHideAll for mapchart
         return(
             <>
 

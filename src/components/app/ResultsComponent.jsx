@@ -52,8 +52,11 @@ class ResultsComponent extends Component {
 
                         let updateDate = data.updatedate
 
+                        updateDate = updateDate.slice(0, updateDate.indexOf(' '))
+                        updateDate = new Date(updateDate)
+
                         // Do not include any dates before 2020/05/15
-                        if(updateDate === "2020/05/15 08:00:00+00")
+                        if(updateDate == "2020/05/15")
                             break
 
                         if (zipCode in associatedPopulationsObj || zipCode in chulaVistaPopulations) {
@@ -65,8 +68,11 @@ class ResultsComponent extends Component {
 
                             partialResults.push(data)
 
-                            if(latestDate == null)
+                            if(latestDate == null) {
+
                                 latestDate = dateFormat(updateDate, "yyyy/mm/dd");
+
+                            }
 
                         }
                     }
@@ -137,7 +143,9 @@ class ResultsComponent extends Component {
             let caseCount = data2.case_count
 
             let updateDate = data2.updatedate
-            let dateString = updateDate.slice(0, updateDate.indexOf(' '))
+
+            let dateString = updateDate
+
 
 
 
@@ -354,7 +362,7 @@ class ResultsComponent extends Component {
         // dataPointsArrayWeekly.splice(-1,1)
 
 
-        let options_weekly = {
+        let optionsWeekly = {
             animationEnabled: true,
             axisY2: {
                 labelFontSize: 18,
@@ -380,7 +388,7 @@ class ResultsComponent extends Component {
             }]
         }
 
-        let options_average = {
+        let optionsAverage = {
             animationEnabled: true,
             axisY2: {
                 labelFontSize: 18,
@@ -405,16 +413,16 @@ class ResultsComponent extends Component {
             }]
         }
 
-        let options_daily = {
+        let optionsDaily = {
             animationEnabled: true,
             axisY2: {
                 labelFontSize: 18,
                 minimum: 0,
                 stripLines:[
                     {
-                        startValue:7.9,
-                        endValue:8.1,
-                        color:"#b34b4b",
+                        startValue:19.9,
+                        endValue:100,
+                        color:"#e5a8a8",
                         // labelBackgroundColor: "transparent",
                     }
                 ]
@@ -441,9 +449,9 @@ class ResultsComponent extends Component {
         this.setState({
             zipCodeMap: zipCodeMap,
             finalZipCountByDate: finalZipCountByDate,
-            optionsWeekly: options_weekly,
-            optionsDaily: options_daily,
-            optionsAverage: options_average
+            optionsWeekly: optionsWeekly,
+            optionsDaily: optionsDaily,
+            optionsAverage: optionsAverage
 
         })
     }
@@ -454,8 +462,8 @@ class ResultsComponent extends Component {
         if(this.state.finalZipCountByDate.size == 0)
             return (<></>)
 
-        console.log("render ResultsComponent")
-        console.log(this.state)
+        // console.log("render ResultsComponent")
+        // console.log(this.state)
 
 
         return(
@@ -482,7 +490,7 @@ class ResultsComponent extends Component {
 
                     <br />
                     <h5>Cases Per Capita (100k) {this.props.singleZip.length > 0 &&  <small>(selected regions only)</small>}</h5>
-                    <small>Purple Tier restrictions (>7 per 100k)</small>
+                    <small className="stay-home">Stay home IF >20 per capita </small>
                     <CanvasJSChart options={this.state.optionsDaily} />
 
                 </div>

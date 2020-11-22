@@ -1,10 +1,23 @@
 
+const LOCAL_DATASETS = true
 
+let API_URL
+let API_COUNTY
 
-export const API_URL = 'https://opendata.arcgis.com/datasets/854d7e48e3dc451aa93b9daf82789089_0.geojson'
+if(LOCAL_DATASETS){
+    API_URL = './zip_dataset.geojson'
 
- // export const API_URL = './dataset.geojson'
+    API_COUNTY = './county_dataset.geojson'
+}
+else{
+    API_URL = 'https://opendata.arcgis.com/datasets/854d7e48e3dc451aa93b9daf82789089_0.geojson'
 
+    API_COUNTY = 'https://opendata.arcgis.com/datasets/1fefbb8df33948cba664d0a9cb71b8c9_0.geojson'
+}
+
+export {API_URL}
+
+export {API_COUNTY}
 
 
 

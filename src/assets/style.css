@@ -1,17 +1,4 @@
 
-
-.boundary-img{
-    width:98%;
-    max-width:900px;
-    /*float:right;*/
-}
-
-.show-pb{
-    margin: auto;
-    display: block;
-    margin-top: 20px;
-    font-size:18px;
-}
 .clear-selection-top{
     margin: auto;
     display: block;
@@ -118,4 +105,10 @@ header{
     100% {
         transform: translateY(0px);
     }
+}
+
+
+.stay-home{
+    font-weight:bold;
+    color: #ef8c8c;
 }
