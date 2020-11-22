@@ -7,6 +7,7 @@ import CanvasJSReact from "../../assets/canvasjs.react";
 import {stripLines, associatedPopulationsObj, chulaVistaPopulations} from "../../Constants";
 
 import MapChartHeatmap from "./MapChartHeatmap";
+import SortedRiskByZipCode from "./SortedRiskByZipCode";
 
 const dateFormat = require('dateformat');
 
@@ -308,8 +309,6 @@ class ResultsComponent extends Component {
 
         finalCountByDateAverage.forEach((value, key) => {
 
-            console.log(key)
-
             if(value == null)
                 value = 0
             else
@@ -467,7 +466,6 @@ class ResultsComponent extends Component {
         // console.log("render ResultsComponent")
         // console.log(this.state)
 
-
         return(
             <>
 
@@ -478,7 +476,13 @@ class ResultsComponent extends Component {
                     <h5><em>(Select regions above to filter results)</em></h5>
                 </div>
 
+                <div className="spacing"></div>
+                <div className="spacing"></div>
+                <div className="spacing"></div>
+
+
                 <div className="contributionChart">
+
                     {this.getNumDays() > 20 &&
                     <>
                         <h5>Cases Per Week {this.props.singleZip.length > 0 &&  <small>(selected regions only)</small>}</h5>
@@ -495,7 +499,15 @@ class ResultsComponent extends Component {
                     <small className="stay-home">Stay home if >20 per capita </small>
                     <CanvasJSChart options={this.state.optionsDaily} />
 
+
+
                 </div>
+
+                <div className="spacing"></div>
+                <div className="spacing"></div>
+                <div className="spacing"></div>
+
+                <SortedRiskByZipCode finalZipCountByDate={this.state.finalZipCountByDate} zipCodeMap={this.state.zipCodeMap}></SortedRiskByZipCode>
 
                 <br /> <br /> <br />
 

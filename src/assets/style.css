@@ -31,9 +31,7 @@ svg {
 path{
     cursor:pointer!important;
 }
-.map-wrapper{
-    margin-bottom: 40px;
-}
+
 CanvasJSChart{
     padding-bottom:60px;
     display:block;
@@ -111,4 +109,25 @@ header{
 .stay-home{
     font-weight:bold;
     color: #e76969;
+}
+.regions-by-risk{
+    width: 500px;
+    margin:auto;
+}
+.regions-by-risk > h5{
+    margin-bottom:10px;
+}
+.regions-by-risk td, .regions-by-risk th{
+    border: 1px solid lightgray;
+}
+.regions-by-risk th{
+    background: #f0f0f0;
+}
+.regions-cases{
+    color:white;
+    font-weight:bold;
+}
+
+.spacing{
+    height:15px;
 }

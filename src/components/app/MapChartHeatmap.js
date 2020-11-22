@@ -6,9 +6,9 @@ import {
     Geography, Annotation
 } from "react-simple-maps";
 
-import {scaleQuantize} from "d3-scale";
 
-import {associatedPopulationsObj, zipCodeNames, zipCodeCoordinates, chulaVistaPopulations} from "../../Constants";
+
+import {associatedPopulationsObj, zipCodeNames, zipCodeCoordinates, chulaVistaPopulations, colorScale} from "../../Constants";
 
 
 
@@ -24,40 +24,7 @@ class MapChartHeatmap extends Component {
             coordinates: props.chulaVistaOnly ? 32.579248 : 32.779248
         }
 
-        this.colorScale = scaleQuantize()
-            .domain([1, 45])
-            .range([
-                "#ffedea",
-
-                "#f8c3a0",
-
-                "#e5974f",
-                "#d27d32",
-
-                "#d25d30",
-                "#ab3a1e",
-
-                "#ac2b16",
-
-                "#6b0f00",
-                "#6b0f00",
-
-                "#5b0e01",
-
-                "#350701",
-                "#350701",
-
-                // "#ffedea",
-                // "#ffcec5",
-                // "#ffad9f",
-                // "#ff8a75",
-                // "#ff5533",
-                // // "#e2492d",
-                // // "#be3d26",
-                // "#8c2817",
-                // "#6b0f00",
-                // "#350701",
-            ]);
+        
 
 
     }
@@ -119,8 +86,6 @@ class MapChartHeatmap extends Component {
             if(caseCount != null)
                 caseCountPerCapita100k = ((caseCount / associatedPopulations[geoZip]) * 100000) / numDays
 
-            console.log(caseCountPerCapita100k)
-
             /*
             let tooltipText
             if (caseCount != null) {
@@ -156,14 +121,14 @@ class MapChartHeatmap extends Component {
             }
 
             let cellStyle = {
-                fill: this.colorScale(locationObj.caseCount) ? this.colorScale(locationObj.caseCount) : "whitesmoke",
+                fill: colorScale(locationObj.caseCount) ? colorScale(locationObj.caseCount) : "whitesmoke",
                 stroke: "#222",
                 strokeWidth: 1.5,
                 outline: 'none'
             }
 
             let cellStyleHover = {
-                fill: this.colorScale(locationObj.caseCount),
+                fill: colorScale(locationObj.caseCount),
                 stroke: "#222",
                 strokeWidth: 1.5,
                 outline: 'none'

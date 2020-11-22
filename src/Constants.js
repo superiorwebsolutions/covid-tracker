@@ -1,3 +1,4 @@
+import {scaleQuantize} from "d3-scale";
 
 const LOCAL_DATASETS = true
 
@@ -20,7 +21,40 @@ export {API_URL}
 export {API_COUNTY}
 
 
+export const colorScale = scaleQuantize()
+    .domain([1, 45])
+    .range([
+        "#ffedea",
 
+        "#f8c3a0",
+
+        "#e5974f",
+        "#d27d32",
+
+        "#d25d30",
+        "#ab3a1e",
+
+        "#ac2b16",
+
+        "#6b0f00",
+        "#6b0f00",
+
+        "#5b0e01",
+
+        "#350701",
+        "#350701",
+
+        // "#ffedea",
+        // "#ffcec5",
+        // "#ffad9f",
+        // "#ff8a75",
+        // "#ff5533",
+        // // "#e2492d",
+        // // "#be3d26",
+        // "#8c2817",
+        // "#6b0f00",
+        // "#350701",
+    ]);
 
 
 export const associatedPopulationsObj = {
