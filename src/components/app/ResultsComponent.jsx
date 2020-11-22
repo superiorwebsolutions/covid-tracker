@@ -754,23 +754,23 @@ class ResultsComponent extends Component {
 
                     {this.getNumDays() > 20 &&
                     <>
-                        <h5>Cases Per Week{this.props.singleZip.length > 0 && <small><br />(selected regions only)</small>}</h5>
+                        <h5>Cases per week{this.props.singleZip.length > 0 && <small><br />(selected regions only)</small>}</h5>
                         <CanvasJSChart options={this.state.optionsWeekly} />
                         <br />
                     </>
                     }
 
-                    <h5>Cases Per Day (averaged){this.props.singleZip.length > 0 && <small><br />(selected regions only)</small>}</h5>
+                    <h5>Daily Cases (averaged){this.props.singleZip.length > 0 && <small><br />(selected regions only)</small>}</h5>
                     <CanvasJSChart options={this.state.optionsAverage} />
 
                     <br />
-                    <h5>Cases Per Capita (100k){this.props.singleZip.length > 0 && <small><br />(selected regions only)</small>}</h5>
+                    <h5>Cases per capita (100k){this.props.singleZip.length > 0 && <small><br />(selected regions only)</small>}</h5>
                     <small className="stay-home">Stay home if >20 per capita </small>
                     <CanvasJSChart options={this.state.optionsDaily} />
 
                 </div>
 
-                <br /><br />
+                <br />
 
 
 
@@ -786,23 +786,28 @@ class ResultsComponent extends Component {
 
 
                 <hr />
+                <br />
+
                 <div className="contributionChart">
 
-                    <h5>Daily Cases<br /><small>(entire county)</small></h5>
+
+                    <h4>Entire County Stats</h4>
+
+                    <h5>Daily Cases<br /><small>(entire SD county)</small></h5>
                     <CanvasJSChart options={this.state.newCasesChart} />
                     <br />
 
-                    <h5>Weekly Hospitalizations<br /><small>(entire county)</small></h5>
+                    <h5>Weekly Hospitalizations<br /><small>(entire SD county)</small></h5>
                     <CanvasJSChart options={this.state.hospitalizedChart} />
                     <br />
 
-                    <h5>Weekly Deaths<br /><small>(entire county)</small></h5>
-                    <CanvasJSChart options={this.state.deathsChart} />
+
+                    <h5>Weekly ICU<br /><small>(entire SD county)</small></h5>
+                    <CanvasJSChart options={this.state.icuChart} />
 
                     <br />
-                    <h5>Weekly ICU<br /><small>(entire county)</small></h5>
-                    <CanvasJSChart options={this.state.icuChart} />
-                    <br />
+                    <h5>Weekly Deaths<br /><small>(entire SD county)</small></h5>
+                    <CanvasJSChart options={this.state.deathsChart} />
 
                     <br />
                     <h5>Percentage of all cases<br />caused by ages 20-29</h5>
