@@ -159,9 +159,9 @@ export const stripLines = [
      labelMaxWidth: 1000,
 
     },{
-     startValue: new Date("2020/11/25"),
-     endValue: new Date("2020/11/30"),
-     // label: "Thanksgiving",
+     startValue: new Date("2020/11/23"),
+     endValue: new Date("2020/12/02"),
+     label: "Thanksgiving",
      labelFontSize: 22,
      labelAlign: "center",
      opacity: .4,

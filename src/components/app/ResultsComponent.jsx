@@ -50,10 +50,10 @@ class ResultsComponent extends Component {
 
                         let caseCount = data.case_count
 
-                        let updateDate = data.updatedate
+                        // Strip the timestamp off the end of the date string
+                        let updateDate = data.updatedate.slice(0, data.updatedate.indexOf(' '))
 
-                        updateDate = updateDate.slice(0, updateDate.indexOf(' '))
-                        updateDate = new Date(updateDate)
+                        data.updatedate = updateDate
 
                         // Do not include any dates before 2020/05/15
                         if(updateDate == "2020/05/15")
@@ -308,6 +308,8 @@ class ResultsComponent extends Component {
 
         finalCountByDateAverage.forEach((value, key) => {
 
+            console.log(key)
+
             if(value == null)
                 value = 0
             else
@@ -422,7 +424,7 @@ class ResultsComponent extends Component {
                     {
                         startValue:19.9,
                         endValue:100,
-                        color:"#e5a8a8",
+                        color:"#fdd4d4",
                         // labelBackgroundColor: "transparent",
                     }
                 ]
@@ -490,7 +492,7 @@ class ResultsComponent extends Component {
 
                     <br />
                     <h5>Cases Per Capita (100k) {this.props.singleZip.length > 0 &&  <small>(selected regions only)</small>}</h5>
-                    <small className="stay-home">Stay home IF >20 per capita </small>
+                    <small className="stay-home">Stay home if >20 per capita </small>
                     <CanvasJSChart options={this.state.optionsDaily} />
 
                 </div>

@@ -97,6 +97,7 @@ class MapChartHeatmap extends Component {
     getGeography(geo){
 
         let associatedPopulations
+
         if(this.props.chulaVistaOnly)
             associatedPopulations = chulaVistaPopulations
         else
