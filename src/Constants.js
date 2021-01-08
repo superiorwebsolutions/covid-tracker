@@ -204,5 +204,17 @@ export const stripLines = [
      showOnTop: true,
      labelBackgroundColor: "white",
      labelMaxWidth: 1000,
-   }
+   },{
+        startValue: new Date("2020/12/18"),
+        endValue: new Date("2020/12/28"),
+        label: "Christmas",
+        labelFontSize: 22,
+        labelAlign: "center",
+        opacity: .4,
+        color:"transparent",
+        labelFontColor: "#f44336",
+        showOnTop: true,
+        labelBackgroundColor: "white",
+        labelMaxWidth: 1000,
+    }
 ]

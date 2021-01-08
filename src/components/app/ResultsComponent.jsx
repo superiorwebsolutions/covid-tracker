@@ -24,6 +24,7 @@ class ResultsComponent extends Component {
             optionsDaily: {},
             optionsAverage: {},
             zipCodeMap: new Map(),
+            riskLevel: 1,
 
         }
 
@@ -125,7 +126,9 @@ class ResultsComponent extends Component {
                     )
 
             }
-        )
+        ).catch(function (error) {
+            alert("San Diego county is updating its database, please check back in an hour.");
+        });
     }
 
     getNumDays(){
@@ -308,8 +311,7 @@ class ResultsComponent extends Component {
 
         // dataPointsArrayStats.splice(0,200)
 
-        if(numOfDays == null)
-            numOfDays = 14
+
 
         var total = 0
 
@@ -321,6 +323,10 @@ class ResultsComponent extends Component {
         }
         if(dateChunk == null)
             dateChunk = 7
+
+
+        if(numOfDays == null)
+            numOfDays = 14
 
 
         let dataPointsArrayStatsLength = dataPointsArrayStats.length
@@ -348,7 +354,7 @@ class ResultsComponent extends Component {
 
 
         // Remove first few entries, start in April
-        dataPointsArrayAverageStats.splice(0, 20)
+        dataPointsArrayAverageStats.splice(0, dateChunk === 1 ? 20 : 2)
 
 
 
@@ -604,6 +610,13 @@ class ResultsComponent extends Component {
         let count = 0
         let totalCases = 0
         let prevDateString = ""
+        let indexLabel = ""
+        let toggleLabel
+
+        if(finalCountByDate.size > 120)
+            toggleLabel = true
+        else
+            toggleLabel = false
 
         // Reverse finalCountByDate in order to correctly count weekly amounts
         let reversedMapWeekly = new Map([...finalCountByDate].reverse());
@@ -615,12 +628,36 @@ class ResultsComponent extends Component {
             count++
             totalCases += value
 
-            if (count % 7 === 0) {
-                dataPointsArrayWeekly.push({x: new Date(prevDateString), y: totalCases, indexLabel: totalCases.toString()})
+            if (count % 7 == 0) {
+                // Toggle indexLabel between off and on
+
+                if(toggleLabel)
+                    if(indexLabel == "")
+                        indexLabel = totalCases.toString()
+                    else
+                        indexLabel = ""
+                else
+                    indexLabel = totalCases.toString()
+
+
+                dataPointsArrayWeekly.push({x: new Date(prevDateString), y: totalCases, indexLabel: indexLabel})
 
                 totalCases = 0
             }
         });
+
+
+
+        // Calculate risk level (total cases in past 10 days)
+        let latestWeekCount = dataPointsArrayWeekly[0].y + (dataPointsArrayWeekly[1].y * 0.71)
+
+        // Multiply by 3, since we're only catching about 1/3rd of cases
+        let perCapita = ((latestWeekCount / populationTotal) ) * 3
+        let riskLevel = Math.round((perCapita + Number.EPSILON) * 10000) / 10000
+
+        riskLevel = Math.round(1 / riskLevel)
+
+
 
         dataPointsArray.splice(0,10)
 
@@ -720,7 +757,8 @@ class ResultsComponent extends Component {
             finalZipCountByDate: finalZipCountByDate,
             optionsWeekly: optionsWeekly,
             optionsDaily: optionsDaily,
-            optionsAverage: optionsAverage
+            optionsAverage: optionsAverage,
+            riskLevel: riskLevel
 
         })
     }
@@ -735,8 +773,11 @@ class ResultsComponent extends Component {
         // console.log(this.state)
 
 
+
         return(
             <>
+
+                <h5 className="riskLevel">1 of every {this.state.riskLevel} people infected <em>(past 10 days)</em></h5>
 
 
                 <div className="map-wrapper">
