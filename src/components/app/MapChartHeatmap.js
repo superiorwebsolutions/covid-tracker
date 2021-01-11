@@ -6,16 +6,10 @@ import {
     Geography, Annotation
 } from "react-simple-maps";
 
-
-
 import {associatedPopulationsObj, zipCodeNames, zipCodeCoordinates, chulaVistaPopulations, colorScale} from "../../Constants";
 
-
-
-
-
 class MapChartHeatmap extends Component {
-    
+
     constructor(props) {
         super(props);
 
@@ -23,16 +17,11 @@ class MapChartHeatmap extends Component {
             content: "",
             coordinates: props.chulaVistaOnly ? 32.579248 : 32.779248
         }
-
-        
-
-
     }
 
     setContent(obj){
         this.setState({content: obj})
     }
-
 
     handleClick(zipCode){
         let zipCodeArray = this.props.singleZip
@@ -41,7 +30,6 @@ class MapChartHeatmap extends Component {
                 if (zipCodeArray[i] == zipCode) {
                     zipCodeArray.splice(i, 1)
                     break
-
                 }
             }
         }
@@ -54,8 +42,6 @@ class MapChartHeatmap extends Component {
         this.forceUpdate();
 
     };
-
-
 
     componentDidMount() {
 
@@ -122,14 +108,14 @@ class MapChartHeatmap extends Component {
 
             let cellStyle = {
                 fill: colorScale(locationObj.caseCount) ? colorScale(locationObj.caseCount) : "whitesmoke",
-                stroke: "#222",
+                stroke: "rgb(74, 104, 128)",
                 strokeWidth: 1.5,
                 outline: 'none'
             }
 
             let cellStyleHover = {
                 fill: colorScale(locationObj.caseCount),
-                stroke: "#222",
+                stroke: "rgb(74, 104, 128)",
                 strokeWidth: 1.5,
                 outline: 'none'
             }
@@ -210,14 +196,8 @@ class MapChartHeatmap extends Component {
 
     render() {
         // Do not render heatmap until zipCodeMap data is populated
-
         if(this.props.finalZipCountByDate.size == 0)
             return (<></>)
-
-        // console.log("render MapChartHeatmap")
-
-        // console.log(this.props.zipCodeMap)
-
 
         {/*<ReactTooltip>{this.state.content}</ReactTooltip>*/}
 
@@ -238,20 +218,14 @@ class MapChartHeatmap extends Component {
                 >
 
                     <ZoomableGroup center={[-117.145, this.state.coordinates]} zoom={1} maxZoom={1} disablePanning disableZooming onMoveStart={(position) => {
-
                         this.setState({coordinates: this.state.coordinates + 0.00001})
-
                     }}>
 
                         <Geographies geography="./zipcodes.geojson" disableOptimization={false}>
                             {
-
                                 ({geographies}) =>
-
                                     geographies.map((geo) => {
-
                                         return(this.getGeography(geo))
-
                                     })
                             }
 
@@ -261,10 +235,8 @@ class MapChartHeatmap extends Component {
 
                 </ComposableMap>
 
-
         );
 
     }
 }
-
 export default MapChartHeatmap

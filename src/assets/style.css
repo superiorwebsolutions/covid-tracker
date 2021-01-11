@@ -44,37 +44,40 @@ CanvasJSChart{
     margin-bottom:25px;
     font-weight:bold;
 }
-  .content{
-      width: 80%;
-      margin:2rem 10% 0 10%;
-      max-width: 100%;
-      box-sizing: border-box;
-      min-height: 100vh;
-  }
+.content{
+  width: 80%;
+  margin:2rem 10% 0 10%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-height: 100vh;
+}
+.cases-per-capita{
+  width:160px;
+}
 .box{
     width:80%;
     margin:2rem 10% 0 10%;
     height:100vh;
     background-color:plum;
 }
-  .navbar{
-      width: 100%;
-      box-sizing: border-box;
-      justify-content: space-between;
-      align-items: center;
-      background-color: white;
-      border-bottom: 1px solid transparent;
-  }
-  .scrolled{
-        display:flex;
-      position: fixed;
-      top: 0;
-      left: 0;
-      background-color: #fbfbfb;
-      border-bottom: 1px solid #666;
-      animation: smoothScroll 0.5s forwards;
-      padding: 13px 0;
-  }
+.navbar{
+  width: 100%;
+  box-sizing: border-box;
+  justify-content: space-between;
+  align-items: center;
+  background-color: white;
+  border-bottom: 1px solid transparent;
+}
+.scrolled{
+    display:flex;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: #fbfbfb;
+  border-bottom: 1px solid #666;
+  animation: smoothScroll 0.5s forwards;
+  padding: 13px 0;
+}
 .logo img{
     width: 50px;
 }
@@ -96,6 +99,7 @@ header{
 .display-none{
     display:none;
 }
+
 @keyframes smoothScroll {
     0% {
         transform: translateY(-40px);
@@ -129,8 +133,14 @@ header{
 }
 
 .spacing{
-    height:15px;
+    height:45px;
 }
 .riskLevel{
     margin-bottom:15px;
+    font-size:1.17rem;
+}
+.riskLevel > span{
+    font-size: .9rem;
+    position: relative;
+    bottom: 1px;
 }

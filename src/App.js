@@ -7,6 +7,7 @@ import './assets/style.css'
 
 import React from "react";
 import MainApp from "./components/app/MainApp";
+import CountyResultsComponent from "./components/app/CountyResultsComponent";
 
 
 
@@ -16,10 +17,7 @@ function App() {
       <>
 
         <div className="App">
-
-
               <MainApp></MainApp>
-
         </div>
       </>
   );

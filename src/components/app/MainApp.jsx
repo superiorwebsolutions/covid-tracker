@@ -39,20 +39,10 @@ class MainApp extends Component{
         this.setState({startDate: startDate})
     }
 
-
-    componentDidMount(){
-
-    }
-
-
     render(){
-
-        // console.log("render MainApp")
-        // console.log(this.state)
 
         return(
             <>
-
                 <div className="container">
 
                     <h4 className="main-title">San Diego Covid Tracker</h4>
@@ -68,8 +58,6 @@ class MainApp extends Component{
                     <br /><br /><br /><br /><br /><br /><br /><br />
 
                 </div>
-
-
             </>
 
         )

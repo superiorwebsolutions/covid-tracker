@@ -152,7 +152,7 @@ export const chulaVistaPopulations = {
 
 
 
-
+// Define holiday sections in MapChartHeatmap
 export const stripLines = [
     {
      startValue: new Date("2020/06/11"),
@@ -205,16 +205,100 @@ export const stripLines = [
      labelBackgroundColor: "white",
      labelMaxWidth: 1000,
    },{
-        startValue: new Date("2020/12/18"),
-        endValue: new Date("2020/12/28"),
-        label: "Christmas",
-        labelFontSize: 22,
-        labelAlign: "center",
-        opacity: .4,
-        color:"transparent",
-        labelFontColor: "#f44336",
-        showOnTop: true,
-        labelBackgroundColor: "white",
-        labelMaxWidth: 1000,
+    startValue: new Date("2020/12/18"),
+    endValue: new Date("2020/12/28"),
+    label: "Christmas",
+    labelFontSize: 22,
+    labelAlign: "center",
+    opacity: .4,
+    color:"transparent",
+    labelFontColor: "#f44336",
+    showOnTop: true,
+    labelBackgroundColor: "white",
+    labelMaxWidth: 1000,
     }
 ]
+
+
+// // Used in ResultsComponent
+// export let optionsWeeklyTemp = {
+//     animationEnabled: true,
+//     axisY2: {
+//         labelFontSize: 18,
+//         minimum: 0,
+//         // maximum: 1250
+//     },
+//     axisX: {
+//         valueFormatString: "M/D",
+//         // interval: 1,
+//         // intervalType: "week",
+//         stripLines:stripLines,
+//     },
+//     data: [{
+//         markerSize:8,
+//         color: "#11446d",
+//         type: "column",
+//         axisYType: "secondary",
+//         indexLabelFontColor: "darkSlateGray",
+//         indexLabelPlacement: "outside",
+//         yValueFormatString: "#",
+//         xValueFormatString: "MMM D (DDDD)",
+//     }]
+// }
+//
+// export let optionsAverageTemp = {
+//     animationEnabled: true,
+//     axisY2: {
+//         labelFontSize: 18,
+//         minimum: 0
+//     },
+//     axisX: {
+//         // interval: 7,
+//         // intervalType: "day",
+//         valueFormatString: "M/D",
+//         stripLines:stripLines,
+//     },
+//
+//     data: [{
+//         axisYType: "secondary",
+//         // indexLabelFontColor: "darkSlateGray",
+//         // indexLabelPlacement: "outside",
+//         yValueFormatString: "#",
+//         xValueFormatString: "MMM D (DDDD)",
+//         type: "spline",
+//         // dataPoints: dataPointsArray
+//     }]
+// }
+//
+// export let optionsDailyTemp = {
+//     animationEnabled: true,
+//     axisY2: {
+//         labelFontSize: 18,
+//         minimum: 0,
+//         stripLines:[
+//             {
+//                 startValue:19.9,
+//                 endValue:200,
+//                 color:"#fdd4d4",
+//                 // labelBackgroundColor: "transparent",
+//             }
+//         ]
+//     },
+//     axisX: {
+//         valueFormatString: "M/D"
+//     },
+//     data: [{
+//         axisYType: "secondary",
+//         axisYIndex: 0, //defaults to 0
+//         yValueFormatString: "#",
+//         xValueFormatString: "MMM D (DDDD)",
+//         type: "spline",
+//     },/*{
+//                 axisYIndex: 1, //defaults to 0
+//                 yValueFormatString: "#",
+//                 xValueFormatString: "MMM D, YYYY (DDDD)",
+//                 type: "spline",
+//                 dataPoints: dataPointsArrayPerCapita
+//             }*/]
+// }
+

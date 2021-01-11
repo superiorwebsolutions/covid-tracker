@@ -4,10 +4,11 @@ import ServiceApi from "../../services/ServiceApi";
 
 import CanvasJSReact from "../../assets/canvasjs.react";
 
-import {stripLines, associatedPopulationsObj, chulaVistaPopulations} from "../../Constants";
+import {stripLines, associatedPopulationsObj, chulaVistaPopulations, optionsWeeklyTemp, optionsAverageTemp, optionsDailyTemp} from "../../Constants";
 
 import MapChartHeatmap from "./MapChartHeatmap";
 import SortedRiskByZipCode from "./SortedRiskByZipCode";
+import CountyResultsComponent from "./CountyResultsComponent";
 
 const dateFormat = require('dateformat');
 
@@ -25,7 +26,6 @@ class ResultsComponent extends Component {
             optionsAverage: {},
             zipCodeMap: new Map(),
             riskLevel: 1,
-
         }
 
         this.allResults = new Map()
@@ -35,11 +35,24 @@ class ResultsComponent extends Component {
         this.updateParentState = this.updateParentState.bind(this)
 
 
+    }
 
+    getNumDays(){
+        let date1 = new Date(this.props.startDate)
 
+        let date2 = new Date(this.latestDate)
+        let diffTime = Math.abs(date2 - date1)
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) - 12;
+    }
 
-        ServiceApi.getAllResults()
-            .then((response) => {
+    updateParentState(newState){
+        this.props.updateState(newState)
+    }
+
+    componentDidMount(){
+
+        // Gets the raw API data from the SanGIS database
+        ServiceApi.getAllResults().then((response) => {
 
                 let latestDate = null
 
@@ -64,19 +77,14 @@ class ResultsComponent extends Component {
                         break
 
                     if (zipCode in associatedPopulationsObj || zipCode in chulaVistaPopulations) {
-
                         // Do not include days with no cases
-                        if (data.case_count == null) {
+                        if (data.case_count == null)
                             data.case_count = 0
-                        }
 
                         partialResults.push(data)
 
-                        if(latestDate == null) {
-
+                        if(latestDate == null)
                             latestDate = dateFormat(updateDate, "yyyy/mm/dd");
-
-                        }
 
                     }
                 }
@@ -84,46 +92,8 @@ class ResultsComponent extends Component {
                 this.allResults = partialResults
                 this.latestDate = latestDate
 
+                // Calculations and populate the map
                 this.refreshResults()
-
-                ServiceApi.getCountyStats()
-                    .then((response) => {
-
-                            let allResultsOrig = response.data.features;
-
-                            let allResults = allResultsOrig.reverse()
-
-                            let partialResultsStats = []
-                            for (let result of allResults) {
-
-                                let data = result.properties
-
-                                // Strip the timestamp off the end of the date string
-                                let updateDate = data.date.slice(0, data.date.indexOf(' '))
-
-                                data.date = updateDate
-
-                                // Do not include any dates before 2020/05/15
-                                // if(updateDate == "2020/05/15")
-                                //     break
-
-
-                                // Do not include days with no cases
-                                if (data.case_count == null) {
-                                    data.case_count = 0
-                                }
-
-                                partialResultsStats.push(data)
-
-                            }
-
-                            this.allResultsStats = partialResultsStats
-
-                            // console.log(partialResultsStats)
-
-                            this.refreshResultsStats()
-                        }
-                    )
 
             }
         ).catch(function (error) {
@@ -131,265 +101,14 @@ class ResultsComponent extends Component {
         });
     }
 
-    getNumDays(){
-        let date1 = new Date(this.props.startDate)
-
-        let date2 = new Date(this.latestDate)
-        let diffTime = Math.abs(date2 - date1)
-        return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) - 12;
-    }
-
-    updateParentState(newState){
-        this.props.updateState(newState)
-    }
-
-    componentDidMount(){
-        // this.refreshResults()
-    }
-
     componentDidUpdate = (prevProps, prevState) => {
 
         // Refresh results each time the query parameters change
         if(prevProps != this.props) {
+            console.log('componentDidUpdate')
              this.refreshResults()
         }
-
     };
-
-    refreshResultsStats(){
-        // let startDate = this.props.startDate
-        // startDate = dateFormat(startDate, "yyyy/mm/dd")
-
-        let statsByDate = new Map()
-
-        for (let result of this.allResultsStats) {
-            let data = {}
-
-            data.date = result.date
-
-            data.newCases = result.newcases
-
-            data.rollingPercentPositive = result.rolling_perc_pos_cases
-
-            data.age20_29 = result.age20_29
-            data.age30_39 = result.age30_39
-            data.age40_49 = result.age40_49
-
-
-
-            data.hospitalized = result.hospitalized
-            data.icu = result.icu
-            data.deaths = result.deaths
-
-            statsByDate.set(data.date, data)
-
-
-        }
-
-        statsByDate = new Map([...statsByDate.entries()].sort())
-
-        let prevDayObj = {hospitalized: 0, icu: 0, age20_29: 0, age30_39: 0, age40_49: 0}
-
-        const compareFieldNames = ['hospitalized', 'icu', 'deaths', 'age20_29', 'age30_39', 'age40_49']
-
-        const regularFieldNames = ['date', 'newCases', 'rollingPercentPositive']
-
-
-        let objState = {}
-
-        let finalStatsByDate = new Map()
-
-        let queueObj = {}
-        for(let fieldName of compareFieldNames){
-            queueObj[fieldName] = []
-        }
-
-        let runningAverageNumDays = null
-
-        let statsByDateLength = statsByDate.size
-
-        let index = 0
-        statsByDate.forEach(( singleDayObj, dateString) => {
-            index++
-
-            // if(prevDayObj.hospitalized == null)
-            //     prevDayObj.hospitalized = singleDayObj.hospitalized
-
-            let tempObj = {}
-
-            for(let fieldName of compareFieldNames){
-
-                tempObj[fieldName] = singleDayObj[fieldName] - prevDayObj[fieldName]
-
-                // TODO:  Delete average here, do not need it anymore
-
-                // Populate finalCountByDateAverage
-                queueObj[fieldName].push(tempObj[fieldName])
-
-                // If index is within 5 most recent dates, change to 3-day average (from 10-day average)
-                if(index > statsByDateLength - 5){
-                    while(queueObj[fieldName].length > (runningAverageNumDays ? runningAverageNumDays : 5))
-                        queueObj[fieldName].shift()
-                }
-                else{
-                    if (queueObj[fieldName].length > (runningAverageNumDays ? runningAverageNumDays : 14))
-                        queueObj[fieldName].shift()
-                }
-
-                let average = 0
-                for (let value of queueObj[fieldName]) {
-                    average += value
-                }
-                average /= queueObj[fieldName].length
-
-                tempObj[fieldName + '_average'] = average
-            }
-
-            for(let fieldName of regularFieldNames){
-                tempObj[fieldName] = singleDayObj[fieldName]
-            }
-
-            // Copy singleDayObj into prevDayObj
-            Object.assign(prevDayObj, singleDayObj);
-
-
-            finalStatsByDate.set(dateString, tempObj)
-
-
-        })
-
-        for(let fieldName of compareFieldNames.concat(['newCases'])){
-
-            objState[fieldName + 'Chart'] = this.getChartByFieldName(finalStatsByDate, fieldName, fieldName == 'age20_29' ? 1 : null)
-        }
-
-
-        this.setState(objState)
-
-    }
-
-
-    getChartByFieldName(finalStatsByDate, fieldName, dateChunk){
-
-
-        let dataPointsArrayStats = []
-
-        let numOfDays
-
-        if(dateChunk === 1){
-            numOfDays = 14
-        }
-
-
-        finalStatsByDate.forEach((singleDayObj, key) => {
-
-            let value = singleDayObj[fieldName]
-
-            if(dateChunk === 1) {
-                // value += singleDayObj['age30_39']
-                value = (value / singleDayObj['newCases']) * 100
-
-            }
-
-
-
-            if(value == null)
-                value = 0
-            else
-                value = Math.round(value)
-
-
-
-
-
-            dataPointsArrayStats.push({x: new Date(key), y: value})
-
-
-        });
-
-        let dataPointsArrayAverageStats = []
-
-        // dataPointsArrayStats.splice(0,200)
-
-
-
-        var total = 0
-
-        let averageOffset = 1
-
-        if(fieldName == 'newCases'){
-            numOfDays = 14
-            dateChunk = 1
-        }
-        if(dateChunk == null)
-            dateChunk = 7
-
-
-        if(numOfDays == null)
-            numOfDays = 14
-
-
-        let dataPointsArrayStatsLength = dataPointsArrayStats.length
-        let remainder = dataPointsArrayStatsLength % dateChunk
-
-
-        for(var i = numOfDays; i < dataPointsArrayStatsLength + averageOffset; i++) {
-            // total = 0
-
-            if(i > dataPointsArrayStatsLength - 7)
-                numOfDays = 3
-
-            for(var j = (i - numOfDays); j < i; j++) {
-                total += dataPointsArrayStats[j].y;
-            }
-            if(i % dateChunk == remainder) {
-                dataPointsArrayAverageStats.push({
-                    x: dataPointsArrayStats[i - averageOffset].x,
-                    y: total / numOfDays
-                });
-
-                total = 0;
-            }
-        }
-
-
-        // Remove first few entries, start in April
-        dataPointsArrayAverageStats.splice(0, dateChunk === 1 ? 20 : 2)
-
-
-
-
-        let chart = {
-            axisY2: {
-                labelFontSize: 18,
-                minimum: 0
-            },
-            axisX: {
-                // interval: 7,
-                // intervalType: "week",
-                valueFormatString: "M/D",
-                stripLines:stripLines,
-            },
-
-            data: [
-                {
-                    axisYType: "secondary",
-                    yValueFormatString: "#",
-                    xValueFormatString: "MMM D (DDDD)",
-                    type: "spline",
-                    dataPoints: dataPointsArrayAverageStats
-                } ]
-        }
-
-
-        return chart
-    }
-
-
-
-
-
-
 
     refreshResults() {
 
@@ -448,8 +167,6 @@ class ResultsComponent extends Component {
 
             if(latestDate == null)
                 latestDate = dateString
-
-
         }
 
         this.latestDate = latestDate
@@ -605,8 +322,6 @@ class ResultsComponent extends Component {
 
         });
 
-
-
         let count = 0
         let totalCases = 0
         let prevDateString = ""
@@ -647,7 +362,6 @@ class ResultsComponent extends Component {
         });
 
 
-
         // Calculate risk level (total cases in past 10 days)
         let latestWeekCount = dataPointsArrayWeekly[0].y + (dataPointsArrayWeekly[1].y * 0.71)
 
@@ -657,8 +371,6 @@ class ResultsComponent extends Component {
 
         riskLevel = Math.round(1 / riskLevel)
 
-
-
         dataPointsArray.splice(0,10)
 
         dataPointsArrayAverage.splice(0,10)
@@ -667,8 +379,12 @@ class ResultsComponent extends Component {
 
         // dataPointsArrayWeekly.splice(-1,1)
 
+        // optionsWeeklyTemp.data[0].dataPoints = dataPointsArrayWeekly
+        // optionsAverageTemp.data[0].dataPoints = dataPointsArrayAverage
+        // optionsDailyTemp.data[0].dataPoints = dataPointsArrayPerCapita
 
-        let optionsWeekly = {
+        // Used in ResultsComponent
+        let optionsWeeklyTemp = {
             animationEnabled: true,
             axisY2: {
                 labelFontSize: 18,
@@ -694,7 +410,7 @@ class ResultsComponent extends Component {
             }]
         }
 
-        let optionsAverage = {
+        let optionsAverageTemp = {
             animationEnabled: true,
             axisY2: {
                 labelFontSize: 18,
@@ -719,7 +435,7 @@ class ResultsComponent extends Component {
             }]
         }
 
-        let optionsDaily = {
+        let optionsDailyTemp = {
             animationEnabled: true,
             axisY2: {
                 labelFontSize: 18,
@@ -727,7 +443,7 @@ class ResultsComponent extends Component {
                 stripLines:[
                     {
                         startValue:19.9,
-                        endValue:100,
+                        endValue:200,
                         color:"#fdd4d4",
                         // labelBackgroundColor: "transparent",
                     }
@@ -752,14 +468,17 @@ class ResultsComponent extends Component {
             }*/]
         }
 
+        console.log(dataPointsArrayWeekly)
+
+
         this.setState({
             zipCodeMap: zipCodeMap,
             finalZipCountByDate: finalZipCountByDate,
-            optionsWeekly: optionsWeekly,
-            optionsDaily: optionsDaily,
-            optionsAverage: optionsAverage,
-            riskLevel: riskLevel
-
+            optionsWeekly: optionsWeeklyTemp,
+            optionsDaily: optionsDailyTemp,
+            optionsAverage: optionsAverageTemp,
+            riskLevel: riskLevel,
+            temp: 'yes'
         })
     }
 
@@ -769,16 +488,13 @@ class ResultsComponent extends Component {
         if(this.state.finalZipCountByDate.size == 0)
             return (<></>)
 
-        // console.log("render ResultsComponent")
-        // console.log(this.state)
 
-
+        console.log(this.state.optionsWeekly)
 
         return(
             <>
 
-                <h5 className="riskLevel">1 of every {this.state.riskLevel} people infected <em>(past 10 days)</em></h5>
-
+                <h5 className="riskLevel">1 of every {this.state.riskLevel} people infected <span>(past 10 days)</span></h5>
 
                 <div className="map-wrapper">
                     <MapChartHeatmap {...this.props} {...this.state} updateParentState={this.updateParentState} />
@@ -786,8 +502,6 @@ class ResultsComponent extends Component {
                     <h5><em>(Select regions above to filter results)</em></h5>
                 </div>
 
-                <div className="spacing"></div>
-                <div className="spacing"></div>
                 <div className="spacing"></div>
 
 
@@ -813,49 +527,18 @@ class ResultsComponent extends Component {
 
                 <br />
 
-
-
-                <div className="spacing"></div>
-                <div className="spacing"></div>
                 <div className="spacing"></div>
 
                 <SortedRiskByZipCode finalZipCountByDate={this.state.finalZipCountByDate} zipCodeMap={this.state.zipCodeMap}></SortedRiskByZipCode>
 
                 <div className="spacing"></div>
-                <div className="spacing"></div>
-                <div className="spacing"></div>
 
 
                 <hr />
-                <br />
 
-                <div className="contributionChart">
+                <div className="spacing"></div>
 
-
-                    <h4>Entire County Stats</h4>
-
-                    <h5>Daily Cases<br /><small>(entire SD county)</small></h5>
-                    <CanvasJSChart options={this.state.newCasesChart} />
-                    <br />
-
-                    <h5>Weekly Hospitalizations<br /><small>(entire SD county)</small></h5>
-                    <CanvasJSChart options={this.state.hospitalizedChart} />
-                    <br />
-
-
-                    <h5>Weekly ICU<br /><small>(entire SD county)</small></h5>
-                    <CanvasJSChart options={this.state.icuChart} />
-
-                    <br />
-                    <h5>Weekly Deaths<br /><small>(entire SD county)</small></h5>
-                    <CanvasJSChart options={this.state.deathsChart} />
-
-                    <br />
-                    <h5>Percentage of all cases<br />caused by ages 20-29</h5>
-                    <CanvasJSChart options={this.state.age20_29Chart} />
-                    <br />
-
-                </div>
+                <CountyResultsComponent></CountyResultsComponent>
 
             </>
 
