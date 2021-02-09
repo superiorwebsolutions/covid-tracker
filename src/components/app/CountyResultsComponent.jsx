@@ -3,6 +3,7 @@ import React, {Component} from "react";
 import CanvasJSReact from "../../assets/canvasjs.react";
 import {stripLines} from "../../Constants";
 import ServiceApi from "../../services/ServiceApi";
+const dateFormat = require('dateformat');
 
 
 let CanvasJSChart = CanvasJSReact.CanvasJSChart;
@@ -28,14 +29,16 @@ class CountyResultsComponent extends Component{
                     let allResults = allResultsOrig.reverse()
 
                     let partialResultsStats = []
+
                     for (let result of allResults) {
 
                         let data = result.properties
 
                         // Strip the timestamp off the end of the date string
-                        let updateDate = data.date.slice(0, data.date.indexOf(' '))
-
+                        let updateDate = data.date.slice(0, data.date.indexOf('T'))
+                        updateDate = dateFormat(updateDate, "yyyy/mm/dd")
                         data.date = updateDate
+
 
                         // Do not include any dates before 2020/05/15
                         // if(updateDate == "2020/05/15")
@@ -167,7 +170,7 @@ class CountyResultsComponent extends Component{
         let numOfDays
 
         if(dateChunk === 1){
-            numOfDays = 14
+            numOfDays = 7
         }
 
         finalStatsByDate.forEach((singleDayObj, key) => {
@@ -209,6 +212,10 @@ class CountyResultsComponent extends Component{
         if(numOfDays == null)
             numOfDays = 14
 
+        // For age20_29, only show the graph starting in July
+        if(fieldName == 'age20_29') {
+             dataPointsArrayStats.splice(0, 90)
+        }
 
         let dataPointsArrayStatsLength = dataPointsArrayStats.length
         let remainder = dataPointsArrayStatsLength % dateChunk

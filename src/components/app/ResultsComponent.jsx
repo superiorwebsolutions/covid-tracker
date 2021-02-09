@@ -54,6 +54,7 @@ class ResultsComponent extends Component {
         // Gets the raw API data from the SanGIS database
         ServiceApi.getAllResults().then((response) => {
 
+
                 let latestDate = null
 
                 let allResultsOrig = response.data.features;
@@ -65,10 +66,16 @@ class ResultsComponent extends Component {
 
                     let data = result.properties
 
+
+
                     let zipCode = data.ziptext
 
+                    if(zipCode == null)
+                        continue
+
                     // Strip the timestamp off the end of the date string
-                    let updateDate = data.updatedate.slice(0, data.updatedate.indexOf(' '))
+                    let updateDate = data.updatedate.slice(0, data.updatedate.indexOf('T'))
+                    updateDate = dateFormat(updateDate, "yyyy/mm/dd")
 
                     data.updatedate = updateDate
 
@@ -105,7 +112,6 @@ class ResultsComponent extends Component {
 
         // Refresh results each time the query parameters change
         if(prevProps != this.props) {
-            console.log('componentDidUpdate')
              this.refreshResults()
         }
     };
@@ -363,7 +369,9 @@ class ResultsComponent extends Component {
 
 
         // Calculate risk level (total cases in past 10 days)
-        let latestWeekCount = dataPointsArrayWeekly[0].y + (dataPointsArrayWeekly[1].y * 0.71)
+        // let latestWeekCount = dataPointsArrayWeekly[0].y + (dataPointsArrayWeekly[1].y * 0.71)
+        // Using 1 week instead of 10 days (the comment above)
+        let latestWeekCount = dataPointsArrayWeekly[0].y
 
         // Multiply by 3, since we're only catching about 1/3rd of cases
         let perCapita = ((latestWeekCount / populationTotal) ) * 3
@@ -468,9 +476,6 @@ class ResultsComponent extends Component {
             }*/]
         }
 
-        console.log(dataPointsArrayWeekly)
-
-
         this.setState({
             zipCodeMap: zipCodeMap,
             finalZipCountByDate: finalZipCountByDate,
@@ -478,7 +483,6 @@ class ResultsComponent extends Component {
             optionsDaily: optionsDailyTemp,
             optionsAverage: optionsAverageTemp,
             riskLevel: riskLevel,
-            temp: 'yes'
         })
     }
 
@@ -489,12 +493,10 @@ class ResultsComponent extends Component {
             return (<></>)
 
 
-        console.log(this.state.optionsWeekly)
-
         return(
             <>
 
-                <h5 className="riskLevel">1 of every {this.state.riskLevel} people infected <span>(past 10 days)</span></h5>
+                <h5 className="riskLevel">1 of every {this.state.riskLevel} people infected <span>(past 7 days)</span></h5>
 
                 <div className="map-wrapper">
                     <MapChartHeatmap {...this.props} {...this.state} updateParentState={this.updateParentState} />
